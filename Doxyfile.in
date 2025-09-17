@@ -1,0 +1,56 @@
+# Doxyfile.in - Doxygen configuration for the project
+#
+# Copyright 2025 Adam Buechner
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Project related configuration options
+PROJECT_NAME           = "@PROJECT_NAME@"
+PROJECT_BRIEF          = "A Minimal Reverse-Mode Automatic Differentiation Library"
+PROJECT_LOGO           = 
+OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_BINARY_DIR@/docs"
+CREATE_SUBDIRS         = NO
+
+# Build related configuration options
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_METHODS  = YES
+EXTRACT_ANON_NSPACES   = YES
+
+# Input
+INPUT                  = "@PROJECT_SOURCE_DIR@/include"
+FILE_PATTERNS          = *.hpp *.h *.cpp *.c
+RECURSIVE              = YES
+EXCLUDE                = 
+
+# Output formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
+GENERATE_XML           = NO
+
+# HTML output
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_SAT    = 100
+HTML_COLORSTYLE_GAMMA  = 80
+
+# Miscellaneous options
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
