@@ -21,8 +21,8 @@
 #include <type_traits>
 
 #include "adventure/config.hpp"
-#include "adventure/tape.hpp"
 #include "adventure/expr.hpp"
+#include "adventure/tape.hpp"
 
 namespace adventure {
 
@@ -30,9 +30,9 @@ namespace adventure {
 /**
  * Each Variable holds an index into the thread-local tape. Variables are not
  * automatically added to the tape; they must be explicitly registered as
- * inputs using #adventure::register_input. Output variables can be registered with
- * #adventure::register_output, after which their adjoint (gradient) can be set
- * directly via #grad() before calling #adventure::backward.
+ * inputs using #adventure::register_input. Output variables can be registered
+ * with #adventure::register_output, after which their adjoint (gradient) can be
+ * set directly via #grad() before calling #adventure::backward.
  *
  * @tparam T Scalar type (default: double).
  */
@@ -44,7 +44,8 @@ class Variable : public ExprBase<Variable<T>, T> {
   static constexpr index_t invalid_idx = static_cast<index_t>(-1);
 
   /// Default constructor (uninitialized, not tracked).
-  constexpr ADVENTURE_STRONG_INLINE Variable() noexcept : idx(invalid_idx), primal_(T(0)) {}
+  constexpr ADVENTURE_STRONG_INLINE Variable() noexcept
+      : idx(invalid_idx), primal_(T(0)) {}
 
   /// Construct a variable with a given value.
   /**
@@ -53,19 +54,23 @@ class Variable : public ExprBase<Variable<T>, T> {
    *
    * @param v Primal value of the variable.
    */
-  constexpr ADVENTURE_STRONG_INLINE Variable(T v) noexcept : idx(invalid_idx), primal_(v) {}
+  constexpr ADVENTURE_STRONG_INLINE Variable(T v) noexcept
+      : idx(invalid_idx), primal_(v) {}
 
   /// Copy constructor. Shallow copy of the tape index and primal value.
   /**
-   * This is used by expression-template returns so that the resulting Variable refers to the same tape node.
+   * This is used by expression-template returns so that the resulting Variable
+   * refers to the same tape node.
    */
-  constexpr ADVENTURE_STRONG_INLINE Variable(const Variable& other) noexcept = default;
+  constexpr ADVENTURE_STRONG_INLINE Variable(const Variable &other) noexcept =
+      default;
 
   /// Move constructor
   /**
-   * Transfers ownership of the tape index and primal value, leaving the source in an invalid state.
+   * Transfers ownership of the tape index and primal value, leaving the source
+   * in an invalid state.
    */
-  constexpr ADVENTURE_STRONG_INLINE Variable(Variable&& other) noexcept
+  constexpr ADVENTURE_STRONG_INLINE Variable(Variable &&other) noexcept
       : idx(other.idx), primal_(other.primal_) {
     other.idx = invalid_idx;
     other.primal_ = T(0);
@@ -75,12 +80,14 @@ class Variable : public ExprBase<Variable<T>, T> {
 
   constexpr void set_value(T new_value) noexcept { primal_ = new_value; }
 
-  constexpr ADVENTURE_STRONG_INLINE T value_impl() const noexcept { return primal_; }
+  constexpr ADVENTURE_STRONG_INLINE T value_impl() const noexcept {
+    return primal_;
+  }
 
-  template<class Writer>
-  ADVENTURE_STRONG_INLINE void derivative_impl(Writer&& w) const noexcept {
+  template <class Writer>
+  ADVENTURE_STRONG_INLINE void derivative_impl(Writer &&w) const noexcept {
     if (is_active()) {
-      w(idx, T(1)); // dx/dx = 1
+      w(idx, T(1));  // dx/dx = 1
     }
   }
 
@@ -89,15 +96,17 @@ class Variable : public ExprBase<Variable<T>, T> {
    * For tracked variables this returns a reference to the stored adjoint,
    * allowing the user to assign a seed before calling #adventure::backward.
    */
-  T& grad() {
-      if (!is_active())
-          throw std::logic_error("Only gradients of active variables can be accessed!");
-      return get_tape<T>().adj_at(idx);
+  T &grad() {
+    if (!is_active())
+      throw std::logic_error(
+          "Only gradients of active variables can be accessed!");
+    return get_tape<T>().adj_at(idx);
   }
 
-  const T& grad() const {
+  const T &grad() const {
     if (!is_active())
-        throw std::logic_error("Only gradients of active variables can be accessed!");
+      throw std::logic_error(
+          "Only gradients of active variables can be accessed!");
     return get_tape<T>().adj_at(idx);
   }
 
@@ -108,7 +117,7 @@ class Variable : public ExprBase<Variable<T>, T> {
   constexpr bool is_active() const noexcept { return idx != invalid_idx; }
 
   /// Copy-assignment.
-  ADVENTURE_STRONG_INLINE Variable& operator=(const Variable& other) noexcept {
+  ADVENTURE_STRONG_INLINE Variable &operator=(const Variable &other) noexcept {
     if (this != &other) {
 #ifndef ADVENTURE_SHALLOW_COPY
       primal_ = other.primal_;
@@ -129,9 +138,10 @@ class Variable : public ExprBase<Variable<T>, T> {
 
   /// Move-assignment.
   /**
-   * Transfers ownership of the tape index to the target and leaves the source in a null (invalid) state.
+   * Transfers ownership of the tape index to the target and leaves the source
+   * in a null (invalid) state.
    */
-  ADVENTURE_STRONG_INLINE Variable& operator=(Variable&& other) noexcept {
+  ADVENTURE_STRONG_INLINE Variable &operator=(Variable &&other) noexcept {
     if (this != &other) {
       idx = other.idx;
       primal_ = other.primal_;
@@ -145,109 +155,111 @@ class Variable : public ExprBase<Variable<T>, T> {
   /**
    * The variable becomes inactive (no tape holds the given value).
    */
-  ADVENTURE_STRONG_INLINE Variable& operator=(T rhs) noexcept {
+  ADVENTURE_STRONG_INLINE Variable &operator=(T rhs) noexcept {
     primal_ = rhs;
     idx = invalid_idx;
     return *this;
   }
 
-private:
+ private:
   /// Index of this Variable on the tape. #invalid_idx if it is inactive.
   index_t idx;
   /// Primal value of this Variable.
   T primal_;
 
-  /// Construct a Variable from an existing tape index (used internally for tracked results).
+  /// Construct a Variable from an existing tape index (used internally forl
+  /// tracked results).
   explicit Variable(index_t index, T primal) : idx(index), primal_(primal) {}
 
   // Grant registration functions access to private members.
   template <typename U>
-  friend void register_input(Variable<U>& var);
+  friend void register_input(Variable<U> &var);
   template <typename U>
-  friend void register_output(Variable<U>& var);
+  friend void register_output(Variable<U> &var);
 
-  template<class Expr>
-  friend Variable<typename Expr::scalar_type> materialise(const Expr& e) noexcept;
+  template <class Expr>
+  friend Variable<typename Expr::scalar_type> materialise(
+      const Expr &e) noexcept;
 
-public:
-  template<class Expr,
-           class = std::enable_if_t<std::is_base_of_v<ExprBase<Expr, T>, Expr>>>
-  ADVENTURE_STRONG_INLINE Variable(const Expr& e) : Variable(materialise(e)) {}
+ public:
+  template <class Expr, class = std::enable_if_t<
+                            std::is_base_of_v<ExprBase<Expr, T>, Expr>>>
+  ADVENTURE_STRONG_INLINE Variable(const Expr &e) : Variable(materialise(e)) {}
 
-  template<class Expr,
-           class = std::enable_if_t<std::is_base_of_v<ExprBase<Expr, T>, Expr>>>
-  ADVENTURE_STRONG_INLINE Variable& operator=(const Expr& e) {
+  template <class Expr, class = std::enable_if_t<
+                            std::is_base_of_v<ExprBase<Expr, T>, Expr>>>
+  ADVENTURE_STRONG_INLINE Variable &operator=(const Expr &e) {
     *this = materialise(e);
     return *this;
   }
 };
 
- template<class T>
- ADVENTURE_STRONG_INLINE auto& operator+=(Variable<T>& lhs, T rhs) {
-   lhs = lhs + rhs;
-   return lhs;
- }
+template <class T>
+ADVENTURE_STRONG_INLINE auto &operator+=(Variable<T> &lhs, T rhs) {
+  lhs = lhs + rhs;
+  return lhs;
+}
 
- template<class T>
- ADVENTURE_STRONG_INLINE auto& operator-=(Variable<T>& lhs, T rhs) {
-   lhs = lhs - rhs;
-   return lhs;
- }
+template <class T>
+ADVENTURE_STRONG_INLINE auto &operator-=(Variable<T> &lhs, T rhs) {
+  lhs = lhs - rhs;
+  return lhs;
+}
 
- template<class T>
- ADVENTURE_STRONG_INLINE auto& operator*=(Variable<T>& lhs, T rhs) {
-   lhs = lhs * rhs;
-   return lhs;
- }
+template <class T>
+ADVENTURE_STRONG_INLINE auto &operator*=(Variable<T> &lhs, T rhs) {
+  lhs = lhs * rhs;
+  return lhs;
+}
 
- template<class T>
- ADVENTURE_STRONG_INLINE auto& operator/=(Variable<T>& lhs, T rhs) {
-   lhs = lhs / rhs;
-   return lhs;
- }
+template <class T>
+ADVENTURE_STRONG_INLINE auto &operator/=(Variable<T> &lhs, T rhs) {
+  lhs = lhs / rhs;
+  return lhs;
+}
 
- template<class T, class Expr,
+template <class T, class Expr,
           std::enable_if_t<std::is_base_of_v<ExprBase<Expr, T>, Expr>, int> = 0>
- ADVENTURE_STRONG_INLINE auto& operator+=(Variable<T>& lhs, const Expr& rhs) {
-   lhs = lhs + rhs;
-   return lhs;
- }
+ADVENTURE_STRONG_INLINE auto &operator+=(Variable<T> &lhs, const Expr &rhs) {
+  lhs = lhs + rhs;
+  return lhs;
+}
 
- template<class T, class Expr,
+template <class T, class Expr,
           std::enable_if_t<std::is_base_of_v<ExprBase<Expr, T>, Expr>, int> = 0>
- ADVENTURE_STRONG_INLINE auto& operator-=(Variable<T>& lhs, const Expr& rhs) {
-   lhs = lhs - rhs;
-   return lhs;
- }
+ADVENTURE_STRONG_INLINE auto &operator-=(Variable<T> &lhs, const Expr &rhs) {
+  lhs = lhs - rhs;
+  return lhs;
+}
 
- template<class T, class Expr,
+template <class T, class Expr,
           std::enable_if_t<std::is_base_of_v<ExprBase<Expr, T>, Expr>, int> = 0>
- ADVENTURE_STRONG_INLINE auto& operator*=(Variable<T>& lhs, const Expr& rhs) {
-   lhs = lhs * rhs;
-   return lhs;
- }
+ADVENTURE_STRONG_INLINE auto &operator*=(Variable<T> &lhs, const Expr &rhs) {
+  lhs = lhs * rhs;
+  return lhs;
+}
 
- template<class T, class Expr,
+template <class T, class Expr,
           std::enable_if_t<std::is_base_of_v<ExprBase<Expr, T>, Expr>, int> = 0>
- ADVENTURE_STRONG_INLINE auto& operator/=(Variable<T>& lhs, const Expr& rhs) {
-   lhs = lhs / rhs;
-   return lhs;
- }
+ADVENTURE_STRONG_INLINE auto &operator/=(Variable<T> &lhs, const Expr &rhs) {
+  lhs = lhs / rhs;
+  return lhs;
+}
 
 /// Register an input variable on the tape.
 template <typename T = double>
-inline void register_input(Variable<T>& var) {
+inline void register_input(Variable<T> &var) {
   auto &tape = get_tape<T>();
   var.idx = tape.add_leaf();
 }
 
 template <typename T = double>
-inline void register_output(Variable<T>& var) {
+inline void register_output(Variable<T> &var) {
   auto &tape = Tape<T>::get_tape();
   if (!var.is_active())
-      var.idx = tape.add_leaf();
+    var.idx = tape.add_leaf();
   else
-      var.idx = tape.add_unary(var.idx, T(1));
+    var.idx = tape.add_unary(var.idx, T(1));
 }
 
 /// Clear the current thread-local tape for a given scalar type.
@@ -256,7 +268,8 @@ inline void clear_tape() {
   get_tape<T>().clear();
 }
 
-/// Perform a backward pass using the seeds stored in the variables' adjoints (via `grad()`).
+/// Perform a backward pass using the seeds stored in the variables' adjoints
+/// (via `grad()`).
 template <typename T = double>
 inline void backward() {
   get_tape<T>().backward();

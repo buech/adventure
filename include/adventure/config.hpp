@@ -20,19 +20,20 @@
 #include <type_traits>
 
 #ifndef ADVENTURE_INDEX_TYPE
-    #define ADVENTURE_INDEX_TYPE std::uint32_t
+#define ADVENTURE_INDEX_TYPE std::uint32_t
 #endif
 
 #ifndef ADVENTURE_STRONG_INLINE
-    #define ADVENTURE_STRONG_INLINE inline __attribute__((always_inline))
+#define ADVENTURE_STRONG_INLINE inline __attribute__((always_inline))
 #endif
 
 #ifndef ADVENTURE_THREAD_LOCAL
-    #define ADVENTURE_THREAD_LOCAL thread_local __attribute__((tls_model("initial-exec")))
+#define ADVENTURE_THREAD_LOCAL \
+  thread_local __attribute__((tls_model("initial-exec")))
 #endif
 
 #ifndef ADVENTURE_SHALLOW_COPY
-    #define ADVENTURE_SHALLOW_COPY
+#define ADVENTURE_SHALLOW_COPY
 #endif
 
 namespace adventure {
@@ -44,6 +45,7 @@ using index_t = ADVENTURE_INDEX_TYPE;
 static_assert(std::is_integral_v<index_t>,
               "ADVENTURE_INDEX_TYPE must be an integral type");
 static_assert(!std::is_signed_v<index_t>,
-              "ADVENTURE_INDEX_TYPE must be unsigned (signed indices make overflow detection ambiguous)");
+              "ADVENTURE_INDEX_TYPE must be unsigned (signed indices make "
+              "overflow detection ambiguous)");
 
-} // namespace adventure
+}  // namespace adventure

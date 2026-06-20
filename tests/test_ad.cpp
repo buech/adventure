@@ -16,9 +16,9 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <type_traits>
-#include <algorithm>
 
 #include "adventure/variable.hpp"
 
@@ -55,7 +55,7 @@ std::pair<Scalar, Scalar> binary_gradient(Scalar x, Scalar y, Func f) {
 
 /// Compare two scalar values with a tolerance.
 template <typename Scalar>
-void expect_near(const Scalar& actual, const Scalar& expected) {
+void expect_near(const Scalar &actual, const Scalar &expected) {
   if constexpr (std::is_same_v<Scalar, double>) {
     EXPECT_DOUBLE_EQ(actual, expected);
   } else if constexpr (std::is_same_v<Scalar, float>) {
@@ -63,8 +63,7 @@ void expect_near(const Scalar& actual, const Scalar& expected) {
   }
 }
 
-using ScalarTypes =
-    ::testing::Types<double, float>;
+using ScalarTypes = ::testing::Types<double, float>;
 
 template <typename T>
 class ADTest : public ::testing::Test {
@@ -224,7 +223,8 @@ TYPED_TEST(ADTest, CbrtGradient) {
   expect_near(y.value(), std::cbrt(x_val));
   y.grad() = Scalar(1);
   ad::backward<Scalar>();
-  Scalar expected = Scalar(1) / (Scalar(3) * std::cbrt(x_val) * std::cbrt(x_val));
+  Scalar expected =
+      Scalar(1) / (Scalar(3) * std::cbrt(x_val) * std::cbrt(x_val));
   expect_near(var.grad(), expected);
 }
 
@@ -239,7 +239,9 @@ TYPED_TEST(ADTest, AbsGradient) {
   y.grad() = Scalar(1);
   ad::backward<Scalar>();
   // derivative: sign(x)
-  Scalar expected = (x_val > Scalar(0)) ? Scalar(1) : ((x_val < Scalar(0)) ? Scalar(-1) : Scalar(0));
+  Scalar expected = (x_val > Scalar(0))
+                        ? Scalar(1)
+                        : ((x_val < Scalar(0)) ? Scalar(-1) : Scalar(0));
   expect_near(var.grad(), expected);
 }
 
@@ -263,10 +265,10 @@ TYPED_TEST(ADTest, AbsGradientVarious) {
   run(Scalar(-3.0), Scalar(-1));
 
   // positive input -> gradient = +1
-  run(Scalar( 2.5), Scalar( 1));
+  run(Scalar(2.5), Scalar(1));
 
   // zero input -> gradient = 0 (we returns 0 at x==0)
-  run(Scalar( 0.0), Scalar( 0));
+  run(Scalar(0.0), Scalar(0));
 }
 
 TYPED_TEST(ADTest, MinGradient) {
@@ -567,8 +569,8 @@ TYPED_TEST(ADTest, MultiOutputGradient) {
   using Scalar = typename TestFixture::Scalar;
   Scalar a_val = Scalar(2.0);
   Scalar b_val = Scalar(5.0);
-  Scalar seed1 = Scalar(1.0); // seed for o1 = a * b
-  Scalar seed2 = Scalar(2.0); // seed for o2 = a + b
+  Scalar seed1 = Scalar(1.0);  // seed for o1 = a * b
+  Scalar seed2 = Scalar(2.0);  // seed for o2 = a + b
 
   ad::clear_tape<Scalar>();
   ad::Variable<Scalar> a(a_val);
@@ -638,143 +640,145 @@ TYPED_TEST(ADTest, ZeroSeed) {
 }
 
 TYPED_TEST(ADTest, PowConstantExponent) {
-    using Scalar = typename TestFixture::Scalar;
-    Scalar x_val = Scalar(2.0);
-    Scalar expected = Scalar(3) * std::pow(Scalar(2.0), Scalar(2.0));
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> var(x_val);
-    ad::register_input(var);
-    ad::Variable<Scalar> y = pow(var, Scalar(3.0));
-    expect_near(y.value(), std::pow(x_val, Scalar(3.0)));
-    y.grad() = Scalar(1);
-    ad::backward<Scalar>();
-    Scalar grad = var.grad();
-    expect_near(grad, expected);
+  using Scalar = typename TestFixture::Scalar;
+  Scalar x_val = Scalar(2.0);
+  Scalar expected = Scalar(3) * std::pow(Scalar(2.0), Scalar(2.0));
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> var(x_val);
+  ad::register_input(var);
+  ad::Variable<Scalar> y = pow(var, Scalar(3.0));
+  expect_near(y.value(), std::pow(x_val, Scalar(3.0)));
+  y.grad() = Scalar(1);
+  ad::backward<Scalar>();
+  Scalar grad = var.grad();
+  expect_near(grad, expected);
 }
 
 TYPED_TEST(ADTest, PowVariableExponent) {
-    using Scalar = typename TestFixture::Scalar;
-    Scalar x_val = Scalar(2.0);
-    Scalar e_val = Scalar(4.0);
-    expect_near(std::pow(x_val, e_val), std::pow(x_val, e_val));
-    auto grads = binary_gradient<Scalar>(x_val, e_val,
-        [](const ad::Variable<Scalar>& xv,
-           const ad::Variable<Scalar>& ev) { return pow(xv, ev); });
-    Scalar expected_dx = e_val * std::pow(x_val, e_val - Scalar(1));
-    Scalar expected_de = std::pow(x_val, e_val) * std::log(x_val);
-    expect_near(grads.first,  expected_dx);
-    expect_near(grads.second, expected_de);
+  using Scalar = typename TestFixture::Scalar;
+  Scalar x_val = Scalar(2.0);
+  Scalar e_val = Scalar(4.0);
+  expect_near(std::pow(x_val, e_val), std::pow(x_val, e_val));
+  auto grads = binary_gradient<Scalar>(
+      x_val, e_val,
+      [](const ad::Variable<Scalar> &xv, const ad::Variable<Scalar> &ev) {
+        return pow(xv, ev);
+      });
+  Scalar expected_dx = e_val * std::pow(x_val, e_val - Scalar(1));
+  Scalar expected_de = std::pow(x_val, e_val) * std::log(x_val);
+  expect_near(grads.first, expected_dx);
+  expect_near(grads.second, expected_de);
 }
 
 TYPED_TEST(ADTest, ComparisonOperators) {
-    using Scalar = typename TestFixture::Scalar;
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> a(Scalar(2.0));
-    ad::Variable<Scalar> b(Scalar(3.0));
-    ad::register_input(a);
-    ad::register_input(b);
+  using Scalar = typename TestFixture::Scalar;
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> a(Scalar(2.0));
+  ad::Variable<Scalar> b(Scalar(3.0));
+  ad::register_input(a);
+  ad::register_input(b);
 
-    EXPECT_TRUE(a < b);
-    EXPECT_FALSE(a > b);
-    EXPECT_TRUE(a <= b);
-    EXPECT_FALSE(a >= b);
-    EXPECT_FALSE(a == b);
-    EXPECT_TRUE(a != b);
-    EXPECT_TRUE(a + b > Scalar(4.0));
+  EXPECT_TRUE(a < b);
+  EXPECT_FALSE(a > b);
+  EXPECT_TRUE(a <= b);
+  EXPECT_FALSE(a >= b);
+  EXPECT_FALSE(a == b);
+  EXPECT_TRUE(a != b);
+  EXPECT_TRUE(a + b > Scalar(4.0));
 }
 
 TYPED_TEST(ADTest, UnaryMinus) {
-    using Scalar = typename TestFixture::Scalar;
+  using Scalar = typename TestFixture::Scalar;
 
-    ad::clear_tape<Scalar>();
-    Scalar x_val = Scalar(4.0);
-    ad::Variable<Scalar> x(x_val);
-    ad::register_input(x);
+  ad::clear_tape<Scalar>();
+  Scalar x_val = Scalar(4.0);
+  ad::Variable<Scalar> x(x_val);
+  ad::register_input(x);
 
-    ad::Variable<Scalar> y = -x;
-    EXPECT_EQ(y.value(), -x_val);
+  ad::Variable<Scalar> y = -x;
+  EXPECT_EQ(y.value(), -x_val);
 
-    y.grad() = Scalar(1);
-    ad::backward<Scalar>();
+  y.grad() = Scalar(1);
+  ad::backward<Scalar>();
 
-    EXPECT_EQ(x.grad(), Scalar(-1));
+  EXPECT_EQ(x.grad(), Scalar(-1));
 }
 
 TYPED_TEST(ADTest, AtanGradient) {
-    using Scalar = typename TestFixture::Scalar;
-    Scalar x_val = Scalar(0.7);
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> x(x_val);
-    ad::register_input(x);
-    ad::Variable<Scalar> y = atan(x);
-    EXPECT_NEAR(y.value(), std::atan(x_val), 1e-12);
-    y.grad() = Scalar(1);
-    ad::backward<Scalar>();
-    Scalar expected = Scalar(1) / (Scalar(1) + x_val * x_val);
-    EXPECT_NEAR(x.grad(), expected, 1e-12);
+  using Scalar = typename TestFixture::Scalar;
+  Scalar x_val = Scalar(0.7);
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> x(x_val);
+  ad::register_input(x);
+  ad::Variable<Scalar> y = atan(x);
+  EXPECT_NEAR(y.value(), std::atan(x_val), 1e-12);
+  y.grad() = Scalar(1);
+  ad::backward<Scalar>();
+  Scalar expected = Scalar(1) / (Scalar(1) + x_val * x_val);
+  EXPECT_NEAR(x.grad(), expected, 1e-12);
 }
 
 // Test integer and arithmetic literal handling.
 TYPED_TEST(ADTest, IntegerLiteralArithmetic) {
-    using Scalar = typename TestFixture::Scalar;
+  using Scalar = typename TestFixture::Scalar;
 
-    // Right-hand side integer literal
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> x = Scalar(2.0);
-    ad::register_input(x);
-    ad::Variable<Scalar> y = x - 1;
-    EXPECT_NEAR(y.value(), Scalar(1.0), 1e-12);
-    y.grad() = Scalar(1);
-    ad::backward<Scalar>();
-    EXPECT_NEAR(x.grad(), Scalar(1), 1e-12);
+  // Right-hand side integer literal
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> x = Scalar(2.0);
+  ad::register_input(x);
+  ad::Variable<Scalar> y = x - 1;
+  EXPECT_NEAR(y.value(), Scalar(1.0), 1e-12);
+  y.grad() = Scalar(1);
+  ad::backward<Scalar>();
+  EXPECT_NEAR(x.grad(), Scalar(1), 1e-12);
 
-    // Left-hand side integer literal
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> x2 = Scalar(2.0);
-    ad::register_input(x2);
-    ad::Variable<Scalar> z = 1 - x2;
-    EXPECT_NEAR(z.value(), Scalar(-1.0), 1e-12);
-    z.grad() = Scalar(1);
-    ad::backward<Scalar>();
-    EXPECT_NEAR(x2.grad(), Scalar(-1), 1e-12);
+  // Left-hand side integer literal
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> x2 = Scalar(2.0);
+  ad::register_input(x2);
+  ad::Variable<Scalar> z = 1 - x2;
+  EXPECT_NEAR(z.value(), Scalar(-1.0), 1e-12);
+  z.grad() = Scalar(1);
+  ad::backward<Scalar>();
+  EXPECT_NEAR(x2.grad(), Scalar(-1), 1e-12);
 }
 
 // pow with integer exponent (right-hand side literal)
 TYPED_TEST(ADTest, PowIntegerExponent) {
-    using Scalar = typename TestFixture::Scalar;
-    Scalar x_val = Scalar(2.0);
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> x(x_val);
-    ad::register_input(x);
+  using Scalar = typename TestFixture::Scalar;
+  Scalar x_val = Scalar(2.0);
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> x(x_val);
+  ad::register_input(x);
 
-    // y = x^20 (20 is an int literal)
-    ad::Variable<Scalar> y = pow(x, 20);
-    EXPECT_NEAR(y.value(), std::pow(x_val, Scalar(20)), 1e-12);
+  // y = x^20 (20 is an int literal)
+  ad::Variable<Scalar> y = pow(x, 20);
+  EXPECT_NEAR(y.value(), std::pow(x_val, Scalar(20)), 1e-12);
 
-    y.grad() = Scalar(1);
-    ad::backward<Scalar>();
+  y.grad() = Scalar(1);
+  ad::backward<Scalar>();
 
-    // derivative = 20 * x^(20-1)
-    Scalar expected = Scalar(20) * std::pow(x_val, Scalar(19));
-    EXPECT_NEAR(x.grad(), expected, 1e-12);
+  // derivative = 20 * x^(20-1)
+  Scalar expected = Scalar(20) * std::pow(x_val, Scalar(19));
+  EXPECT_NEAR(x.grad(), expected, 1e-12);
 }
 
 // pow with integer base (left-hand side literal)
 TYPED_TEST(ADTest, PowIntegerBase) {
-    using Scalar = typename TestFixture::Scalar;
-    Scalar x_val = Scalar(3.0);
-    ad::clear_tape<Scalar>();
-    ad::Variable<Scalar> x(x_val);
-    ad::register_input(x);
+  using Scalar = typename TestFixture::Scalar;
+  Scalar x_val = Scalar(3.0);
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> x(x_val);
+  ad::register_input(x);
 
-    // y = 5^x (5 is an int literal)
-    ad::Variable<Scalar> y = pow(5, x);
-    EXPECT_NEAR(y.value(), std::pow(Scalar(5), x_val), 1e-12);
+  // y = 5^x (5 is an int literal)
+  ad::Variable<Scalar> y = pow(5, x);
+  EXPECT_NEAR(y.value(), std::pow(Scalar(5), x_val), 1e-12);
 
-    y.grad() = Scalar(1);
-    ad::backward<Scalar>();
+  y.grad() = Scalar(1);
+  ad::backward<Scalar>();
 
-    // derivative = 5^x * ln(5)
-    Scalar expected = std::pow(Scalar(5), x_val) * std::log(Scalar(5));
-    EXPECT_NEAR(x.grad(), expected, 1e-12);
+  // derivative = 5^x * ln(5)
+  Scalar expected = std::pow(Scalar(5), x_val) * std::log(Scalar(5));
+  EXPECT_NEAR(x.grad(), expected, 1e-12);
 }

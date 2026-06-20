@@ -16,9 +16,9 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cassert>
 #include <limits>
 
 #include "adventure/config.hpp"
@@ -26,10 +26,10 @@
 
 namespace adventure {
 
-template<typename T>
+template <typename T>
 struct Edge {
-    index_t parent;
-    T coeff;
+  index_t parent;
+  T coeff;
 };
 
 /// The tape that records all operations for a thread.
@@ -40,6 +40,7 @@ template <typename T>
 class Tape {
  private:
   Tape() {}
+
  public:
   /// Type used for tape indices.
   using index_type = index_t;
@@ -52,8 +53,8 @@ class Tape {
   internal::DynamicArray<T> adj;
 
   static Tape &get_tape() {
-      static ADVENTURE_THREAD_LOCAL Tape tape;
-      return tape;
+    static ADVENTURE_THREAD_LOCAL Tape tape;
+    return tape;
   }
 
   Tape(const Tape &) = delete;
@@ -63,14 +64,15 @@ class Tape {
   inline std::size_t size() const noexcept { return arities.size(); }
 
   /// Maximum representable index value.
-  static constexpr index_type max_index = std::numeric_limits<index_type>::max();
+  static constexpr index_type max_index =
+      std::numeric_limits<index_type>::max();
 
   ADVENTURE_STRONG_INLINE index_type add_leaf() noexcept {
     // The index that this node will receive.
     std::size_t next = arities.size();
     assert(next <= static_cast<std::size_t>(max_index) &&
-        "adventure::Tape overflow - index exceeds the maximum value of ADVENTURE_INDEX_TYPE"
-    );
+           "adventure::Tape overflow - index exceeds the maximum value of "
+           "ADVENTURE_INDEX_TYPE");
 
     // Record node metadata.
     arities.push_back(static_cast<std::uint8_t>(0));
@@ -83,8 +85,8 @@ class Tape {
     // The index that this node will receive.
     std::size_t next = arities.size();
     assert(next <= static_cast<std::size_t>(max_index) &&
-        "adventure::Tape overflow - index exceeds the maximum value of ADVENTURE_INDEX_TYPE"
-    );
+           "adventure::Tape overflow - index exceeds the maximum value of "
+           "ADVENTURE_INDEX_TYPE");
 
     // Store edges.
     edges.emplace_back(p, c);
@@ -111,26 +113,29 @@ class Tape {
 
   inline void backward() noexcept {
     const std::size_t node_cnt = arities.size();
-    std::size_t edge = edges.size(); // one past last edge
+    std::size_t edge = edges.size();  // one past last edge
 
-    for (std::size_t i = node_cnt; i-- > 0; ) {
-        const auto ar = arities[i];
-        edge -= ar; // now points to the first edge of node i
+    for (std::size_t i = node_cnt; i-- > 0;) {
+      const auto ar = arities[i];
+      edge -= ar;  // now points to the first edge of node i
 
-        const T seed = adj[i];
-        if (seed == T(0)) [[unlikely]] continue;
-        // walk the edge block backwards
-        for (auto k = ar; k-- > 0; ) {
-            const auto &e = edges[edge + k];
-            adj[e.parent] += e.coeff * seed;
-        }
+      const T seed = adj[i];
+      if (seed == T(0)) [[unlikely]]
+        continue;
+      // walk the edge block backwards
+      for (auto k = ar; k-- > 0;) {
+        const auto &e = edges[edge + k];
+        adj[e.parent] += e.coeff * seed;
+      }
     }
   }
 
-  inline T& adj_at(index_type idx) noexcept { return adj[idx]; }
+  inline T &adj_at(index_type idx) noexcept { return adj[idx]; }
 };
 
-template<typename T>
-inline Tape<T> &get_tape() { return Tape<T>::get_tape(); }
+template <typename T>
+inline Tape<T> &get_tape() {
+  return Tape<T>::get_tape();
+}
 
 }  // namespace adventure

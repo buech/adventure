@@ -15,26 +15,27 @@
  */
 
 #include <gtest/gtest.h>
-#include "adventure/variable.hpp"
+
 #include "adventure/expr.hpp"
 #include "adventure/tape.hpp"
+#include "adventure/variable.hpp"
 
 namespace ad = adventure;
 
 TEST(ExceptionSafety, TapeUnchangedAfterException) {
-    using Scalar = double;
-    ad::clear_tape<Scalar>();
-    std::size_t size_before = ad::get_tape<Scalar>().size();
+  using Scalar = double;
+  ad::clear_tape<Scalar>();
+  std::size_t size_before = ad::get_tape<Scalar>().size();
 
-    try {
-        // Build a variable, then deliberately throw before any tape operation.
-        [[maybe_unused]] ad::Variable<Scalar> x(Scalar(1.0));
-        throw std::runtime_error("intentional");
-    } catch (const std::exception&) {
-        // Swallow the exception.
-    }
+  try {
+    // Build a variable, then deliberately throw before any tape operation.
+    [[maybe_unused]] ad::Variable<Scalar> x(Scalar(1.0));
+    throw std::runtime_error("intentional");
+  } catch (const std::exception &) {
+    // Swallow the exception.
+  }
 
-    // Tape size must be unchanged because the exception occurred before any
-    // tape-modifying operation.
-    EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before);
+  // Tape size must be unchanged because the exception occurred before any
+  // tape-modifying operation.
+  EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before);
 }

@@ -15,7 +15,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <utility>   // std::move
+
+#include <utility>  // std::move
 
 #include "adventure/variable.hpp"
 
@@ -39,19 +40,19 @@ namespace detail {
 // The function is deliberately separate from the test body so that the
 // copy-constructor is exercised when the temporary is returned.
 template <typename Scalar>
-ad::Variable<Scalar> make_quadventureatic(const ad::Variable<Scalar>& x) {
+ad::Variable<Scalar> make_quadventureatic(const ad::Variable<Scalar> &x) {
   // f(x) = x * x
-  return x * x; // returns a temporary Variable
+  return x * x;  // returns a temporary Variable
 }
 
 // Same as above but returns a leaf (no tape node) - useful for checking that
 // copy-construction of a constant does not allocate a node.
 template <typename Scalar>
 ad::Variable<Scalar> make_constant(Scalar v) {
-  return ad::Variable<Scalar>(v);   // default-constructed (invalid idx)
+  return ad::Variable<Scalar>(v);  // default-constructed (invalid idx)
 }
 
-} // namespace detail
+}  // namespace detail
 
 TYPED_TEST(VariableCtorTest, DefaultCtorIsInactive) {
   using Scalar = typename TestFixture::Scalar;
@@ -78,12 +79,13 @@ TYPED_TEST(VariableCtorTest, CopyCtorLeaf) {
 
   ad::clear_tape<Scalar>();
   ad::Variable<Scalar> x(Scalar(1.0));
-  ad::register_input(x);   // x becomes a leaf (idx = 0)
+  ad::register_input(x);  // x becomes a leaf (idx = 0)
 
   std::size_t tape_size_before = ad::get_tape<Scalar>().size();
 
-  ad::Variable<Scalar> y(x);           // copy ctor
-  EXPECT_EQ(y.tape_index(), x.tape_index()) << "Copy ctor must not allocate a new node";
+  ad::Variable<Scalar> y(x);  // copy ctor
+  EXPECT_EQ(y.tape_index(), x.tape_index())
+      << "Copy ctor must not allocate a new node";
   EXPECT_EQ(ad::get_tape<Scalar>().size(), tape_size_before);
 }
 
@@ -103,7 +105,8 @@ TYPED_TEST(VariableCtorTest, CopyCtorFromReturnedTemporary) {
   // The function creates a temporary (x*x) and returns it.
   ad::Variable<Scalar> y = detail::make_quadventureatic(x);
 
-  // The temporary created inside make_quadventureatic should add exactly ONE new node.
+  // The temporary created inside make_quadventureatic should add exactly ONE
+  // new node.
   EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before + 1);
   // y must refer to that node.
   EXPECT_NE(y.tape_index(), ad::Variable<Scalar>::invalid_idx);
@@ -114,9 +117,9 @@ TYPED_TEST(VariableCtorTest, MoveCtorTransfersNode) {
 
   ad::clear_tape<Scalar>();
   ad::Variable<Scalar> a(Scalar(5.0));
-  ad::register_input(a);   // a is a leaf (idx = 0)
+  ad::register_input(a);  // a is a leaf (idx = 0)
 
-  ad::Variable<Scalar> b(std::move(a)); // move ctor
+  ad::Variable<Scalar> b(std::move(a));  // move ctor
 
   // b must now hold the original index.
   EXPECT_NE(b.tape_index(), ad::Variable<Scalar>::invalid_idx);
@@ -135,8 +138,8 @@ TYPED_TEST(VariableCtorTest, MoveCtorInactive) {
   EXPECT_EQ(a.tape_index(), ad::Variable<Scalar>::invalid_idx);
 }
 
- // Interaction with the backward pass - a copy-constructed leaf must
- // behave exactly like the original (gradients are shared).
+// Interaction with the backward pass - a copy-constructed leaf must
+// behave exactly like the original (gradients are shared).
 TYPED_TEST(VariableCtorTest, CopyCtorSharesAdjoint) {
   using Scalar = typename TestFixture::Scalar;
 
@@ -148,7 +151,7 @@ TYPED_TEST(VariableCtorTest, CopyCtorSharesAdjoint) {
   ad::Variable<Scalar> y(x);
 
   // Use only y in a downstream computation.
-  ad::Variable<Scalar> f = y * y;   // f = y^2
+  ad::Variable<Scalar> f = y * y;  // f = y^2
   ad::register_output(f);
   f.grad() = Scalar(1);
   ad::backward<Scalar>();
@@ -247,4 +250,4 @@ TYPED_TEST(VariableCtorTest, MoveCtorDoesNotGrowTape) {
   EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before);
 }
 
-} // namespace
+}  // namespace
