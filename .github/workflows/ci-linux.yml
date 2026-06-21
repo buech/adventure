@@ -23,7 +23,25 @@ jobs:
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
       - name: Build
-        run: cmake --build build --parallel $(nproc)
+        run: |
+          cmake --build build --parallel $(nproc) 2>&1 | tee build/build.log
+
+      - name: Check warnings
+        run: |
+          mkdir -p build
+          grep -i -n "warning:" build/build.log > build/warnings.txt || true
+          count=$(wc -l < build/warnings.txt || true)
+          # ensure a numeric zero if empty
+          if [ -z "$count" ]; then count=0; fi
+          echo "warning_count=$count" >> $GITHUB_OUTPUT
+          if [ "$count" -gt 0 ]; then
+            echo "Detected $count compiler warnings. Preview:";
+            sed -n '1,200p' build/warnings.txt || true
+            exit 1;
+          else
+            echo "No compiler warnings detected.";
+          fi
+        continue-on-error: true
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
