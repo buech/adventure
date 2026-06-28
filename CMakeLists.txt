@@ -21,6 +21,7 @@ include(GNUInstallDirs)
 
 # Doxygen documentation
 option(BUILD_DOCS "Build documentation" ON)
+option(BUILD_TESTS "Build tests" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" ON)
 
 if(BUILD_DOCS)
@@ -69,21 +70,26 @@ configure_package_config_file(
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/adventure")
 
 # GoogleTest
-include(FetchContent)
-FetchContent_Declare(
-    googletest
-    DOWNLOAD_EXTRACT_TIMESTAMP ON
-    URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
-    )
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+if(BUILD_TESTS)
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
+        )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
 
-enable_testing()
-add_subdirectory(tests)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # Benchmarks (optional)
 if(BUILD_BENCHMARKS)
+    if(NOT BUILD_TESTS)
+        include(FetchContent)
+    endif()
     set(BENCHMARK_ENABLE_TESTING NO)
     FetchContent_Declare(
         benchmark
