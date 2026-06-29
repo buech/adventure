@@ -30,7 +30,7 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build build-essential doxygen
+          sudo apt-get install -y cmake build-essential
 
       - name: Install clang
         if: matrix.compiler == 'clang'
@@ -41,7 +41,7 @@ jobs:
       - name: Configure
         run: |
           rm -rf build
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          cmake -S . -B build -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_DOCS=off
 
       - name: Build
         run: |
