@@ -70,11 +70,11 @@ class Variable : public ExprBase<Variable<T>, T> {
 
   constexpr ~Variable() noexcept = default;
 
-  constexpr void set_value(T new_value) noexcept { primal_ = new_value; }
-
-  constexpr ADVENTURE_STRONG_INLINE T value_impl() const noexcept {
+  constexpr ADVENTURE_STRONG_INLINE const T &value_impl() const noexcept {
     return primal_;
   }
+
+  constexpr ADVENTURE_STRONG_INLINE T &value_impl() noexcept { return primal_; }
 
   template <class Writer>
   ADVENTURE_STRONG_INLINE void derivative_impl(Writer &&w) const noexcept {

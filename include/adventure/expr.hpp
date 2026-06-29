@@ -34,8 +34,12 @@ struct UnaryExpr;
 template <class Derived, class T>
 struct ExprBase {
   using scalar_type = T;
-  constexpr ADVENTURE_STRONG_INLINE T value() const {
+  constexpr ADVENTURE_STRONG_INLINE decltype(auto) value() const {
     return static_cast<const Derived &>(*this).value_impl();
+  }
+
+  constexpr ADVENTURE_STRONG_INLINE decltype(auto) value() {
+    return static_cast<Derived &>(*this).value_impl();
   }
 
   template <class Writer>

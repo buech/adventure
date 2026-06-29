@@ -16,6 +16,10 @@ add_executable(test_variable_constructors test_variable_constructors.cpp)
 target_link_libraries(test_variable_constructors PRIVATE adventure GTest::gtest_main)
 add_test(NAME test_variable_constructors COMMAND test_variable_constructors)
 
+add_executable(test_value_access test_value_access.cpp)
+target_link_libraries(test_value_access PRIVATE adventure GTest::gtest_main)
+add_test(NAME test_value_access COMMAND test_value_access)
+
 add_executable(test_ops test_ops.cpp)
 target_link_libraries(test_ops PRIVATE adventure GTest::gtest_main)
 add_test(NAME test_ops COMMAND test_ops)
