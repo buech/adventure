@@ -53,7 +53,7 @@ class Tape {
   void operator=(const Tape &) = delete;
 
   /// Get the current tape size (number of nodes).
-  inline std::size_t size() const noexcept { return arities.size(); }
+  std::size_t size() const noexcept { return arities.size(); }
 
   /// Maximum representable index value.
   static constexpr index_type max_index =
@@ -91,7 +91,7 @@ class Tape {
   }
 
   /// Clear all recorded operations.
-  inline void clear() noexcept {
+  void clear() noexcept {
     arities.clear();
     edges.clear();
     adj.clear();
@@ -103,7 +103,7 @@ class Tape {
     adj.reserve(nNodes);
   }
 
-  inline void backward() noexcept {
+  void backward() noexcept {
     const std::size_t node_cnt = arities.size();
     std::size_t edge = edges.size();  // one past last edge
 
@@ -122,11 +122,11 @@ class Tape {
     }
   }
 
-  inline T &adj_at(index_type idx) noexcept { return adj[idx]; }
+  T &adj_at(index_type idx) noexcept { return adj[idx]; }
 };
 
 template <typename T>
-inline Tape<T> &get_tape() {
+Tape<T> &get_tape() {
   return Tape<T>::get_tape();
 }
 

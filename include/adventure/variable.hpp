@@ -240,13 +240,13 @@ ADVENTURE_STRONG_INLINE auto &operator/=(Variable<T> &lhs, const Expr &rhs) {
 
 /// Register an input variable on the tape.
 template <typename T = double>
-inline void register_input(Variable<T> &var) {
+void register_input(Variable<T> &var) {
   auto &tape = get_tape<T>();
   var.idx = tape.add_leaf();
 }
 
 template <typename T = double>
-inline void register_output(Variable<T> &var) {
+void register_output(Variable<T> &var) {
   auto &tape = Tape<T>::get_tape();
   if (!var.is_active())
     var.idx = tape.add_leaf();
@@ -256,14 +256,14 @@ inline void register_output(Variable<T> &var) {
 
 /// Clear the current thread-local tape for a given scalar type.
 template <typename T = double>
-inline void clear_tape() {
+void clear_tape() {
   get_tape<T>().clear();
 }
 
 /// Perform a backward pass using the seeds stored in the variables' adjoints
 /// (via `grad()`).
 template <typename T = double>
-inline void backward() {
+void backward() {
   get_tape<T>().backward();
 }
 
