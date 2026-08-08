@@ -679,6 +679,54 @@ TYPED_TEST(ADTest, ComparisonOperators) {
   EXPECT_TRUE(a + b > Scalar(4.0));
 }
 
+TYPED_TEST(ADTest, MixedTypeComparisonOperators) {
+  using Scalar = typename TestFixture::Scalar;
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> a(Scalar(2.0));
+  Scalar b(Scalar(3.0));
+  ad::register_input(a);
+
+  EXPECT_TRUE(a < b);
+  EXPECT_FALSE(a > b);
+  EXPECT_TRUE(a <= b);
+  EXPECT_FALSE(a >= b);
+  EXPECT_FALSE(a == b);
+  EXPECT_TRUE(a != b);
+  EXPECT_TRUE(a + b > Scalar(4.0));
+
+  EXPECT_TRUE(b > a);
+  EXPECT_FALSE(b < a);
+  EXPECT_TRUE(b >= a);
+  EXPECT_FALSE(b <= a);
+  EXPECT_FALSE(b == a);
+  EXPECT_TRUE(b != a);
+  EXPECT_TRUE(Scalar(4.0) < a + b);
+}
+
+TYPED_TEST(ADTest, MixedTypeComparisonOperatorsImplicitConversion) {
+  using Scalar = typename TestFixture::Scalar;
+  ad::clear_tape<Scalar>();
+  ad::Variable<Scalar> a(Scalar(2.0));
+  int b = 3;
+  ad::register_input(a);
+
+  EXPECT_TRUE(a < b);
+  EXPECT_FALSE(a > b);
+  EXPECT_TRUE(a <= b);
+  EXPECT_FALSE(a >= b);
+  EXPECT_FALSE(a == b);
+  EXPECT_TRUE(a != b);
+  EXPECT_TRUE(a + b > Scalar(4.0));
+
+  EXPECT_TRUE(b > a);
+  EXPECT_FALSE(b < a);
+  EXPECT_TRUE(b >= a);
+  EXPECT_FALSE(b <= a);
+  EXPECT_FALSE(b == a);
+  EXPECT_TRUE(b != a);
+  EXPECT_TRUE(Scalar(4.0) < a + b);
+}
+
 TYPED_TEST(ADTest, UnaryMinus) {
   using Scalar = typename TestFixture::Scalar;
 

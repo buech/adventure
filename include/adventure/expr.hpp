@@ -43,6 +43,56 @@ struct ExprBase {
     static_cast<const Derived &>(*this).derivative_impl(
         std::forward<Writer>(w));
   }
+
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator==(const ExprBase &l,
+                                                           T r) {
+    return l.value() == r;
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator!=(const ExprBase &l,
+                                                           T r) {
+    return l.value() != r;
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator<(const ExprBase &l,
+                                                          T r) {
+    return l.value() < r;
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator<=(const ExprBase &l,
+                                                           T r) {
+    return l.value() <= r;
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator>(const ExprBase &l,
+                                                          T r) {
+    return l.value() > r;
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator>=(const ExprBase &l,
+                                                           T r) {
+    return l.value() >= r;
+  }
+
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator==(T l,
+                                                           const ExprBase &r) {
+    return l == r.value();
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator!=(T l,
+                                                           const ExprBase &r) {
+    return l != r.value();
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator<(T l,
+                                                          const ExprBase &r) {
+    return l < r.value();
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator<=(T l,
+                                                           const ExprBase &r) {
+    return l <= r.value();
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator>(T l,
+                                                          const ExprBase &r) {
+    return l > r.value();
+  }
+  constexpr friend ADVENTURE_STRONG_INLINE bool operator>=(T l,
+                                                           const ExprBase &r) {
+    return l >= r.value();
+  }
 };
 
 template <class E>
@@ -392,64 +442,6 @@ template <class L, class R, class T>
 constexpr ADVENTURE_STRONG_INLINE bool operator>=(const ExprBase<L, T> &l,
                                                   const ExprBase<R, T> &r) {
   return l.value() >= r.value();
-}
-
-template <class L, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator==(const ExprBase<L, T> &l,
-                                                  T r) {
-  return l.value() == r;
-}
-template <class L, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator!=(const ExprBase<L, T> &l,
-                                                  T r) {
-  return l.value() != r;
-}
-template <class L, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator<(const ExprBase<L, T> &l, T r) {
-  return l.value() < r;
-}
-template <class L, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator<=(const ExprBase<L, T> &l,
-                                                  T r) {
-  return l.value() <= r;
-}
-template <class L, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator>(const ExprBase<L, T> &l, T r) {
-  return l.value() > r;
-}
-template <class L, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator>=(const ExprBase<L, T> &l,
-                                                  T r) {
-  return l.value() >= r;
-}
-
-template <class R, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator==(T l,
-                                                  const ExprBase<R, T> &r) {
-  return l == r.value();
-}
-template <class R, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator!=(T l,
-                                                  const ExprBase<R, T> &r) {
-  return l != r.value();
-}
-template <class R, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator<(T l, const ExprBase<R, T> &r) {
-  return l < r.value();
-}
-template <class R, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator<=(T l,
-                                                  const ExprBase<R, T> &r) {
-  return l <= r.value();
-}
-template <class R, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator>(T l, const ExprBase<R, T> &r) {
-  return l > r.value();
-}
-template <class R, class T>
-constexpr ADVENTURE_STRONG_INLINE bool operator>=(T l,
-                                                  const ExprBase<R, T> &r) {
-  return l >= r.value();
 }
 
 template <class T>
