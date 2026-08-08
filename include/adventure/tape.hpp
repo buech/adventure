@@ -31,7 +31,7 @@ struct Edge {
 template <typename T>
 class Tape {
  private:
-  Tape() {}
+  Tape() = default;
 
  public:
   /// Type used for tape indices.
