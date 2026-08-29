@@ -79,6 +79,14 @@ TYPED_TEST(VariableCtorTest, CopyCtorLeaf) {
   ad::Variable<Scalar> y(x);  // copy ctor
   EXPECT_EQ(y.tape_index(), x.tape_index())
       << "Copy ctor must not allocate a new node";
+
+  EXPECT_NE(x.get_tape_ptr(), nullptr);
+  EXPECT_NE(y.get_tape_ptr(), nullptr);
+
+  EXPECT_EQ(x.get_tape_ptr(), y.get_tape_ptr());
+  EXPECT_EQ(x.get_tape_ptr(), &tape);
+  EXPECT_EQ(y.get_tape_ptr(), &tape);
+
   EXPECT_EQ(tape.size(), tape_size_before);
 }
 
@@ -120,6 +128,10 @@ TYPED_TEST(VariableCtorTest, MoveCtorTransfersNode) {
   EXPECT_NE(b.tape_index(), ad::Variable<Scalar>::invalid_idx);
   // a must be left in the null state.
   EXPECT_EQ(a.tape_index(), ad::Variable<Scalar>::invalid_idx);
+
+  EXPECT_EQ(a.get_tape_ptr(), nullptr);
+  EXPECT_NE(b.get_tape_ptr(), nullptr);
+  EXPECT_EQ(b.get_tape_ptr(), &tape);
 }
 
 TYPED_TEST(VariableCtorTest, MoveCtorInactive) {

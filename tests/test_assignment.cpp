@@ -46,6 +46,12 @@ TYPED_TEST(AssignmentTest, CopyActiveVariable) {
   EXPECT_EQ(x.tape_index(), y.tape_index())
       << "Copy should not allocate a new node";
 #endif
+  EXPECT_NE(x.get_tape_ptr(), nullptr);
+  EXPECT_NE(y.get_tape_ptr(), nullptr);
+
+  EXPECT_EQ(x.get_tape_ptr(), y.get_tape_ptr());
+  EXPECT_EQ(x.get_tape_ptr(), &tape);
+  EXPECT_EQ(y.get_tape_ptr(), &tape);
 
   EXPECT_EQ(x.value(), y.value());
 
@@ -78,6 +84,10 @@ TYPED_TEST(AssignmentTest, MoveActiveVariableTransfersNode) {
   EXPECT_NE(b.tape_index(), ad::Variable<Scalar>::invalid_idx);
   EXPECT_EQ(a.tape_index(), ad::Variable<Scalar>::invalid_idx)
       << "Source variable should be left in a null state";
+
+  EXPECT_EQ(a.get_tape_ptr(), nullptr);
+  EXPECT_NE(b.get_tape_ptr(), nullptr);
+  EXPECT_EQ(b.get_tape_ptr(), &tape);
 
   // Use `b` in a simple expression to make sure the node is still usable.
   ad::Variable<Scalar> g = b + Scalar(2);
