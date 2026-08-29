@@ -30,10 +30,9 @@ struct Edge {
  */
 template <typename T>
 class Tape {
- private:
+ public:
   Tape() = default;
 
- public:
   /// Type used for tape indices.
   using index_type = index_t;
 
@@ -91,17 +90,29 @@ class Tape {
   }
 
   template <typename U>
-  void register_input(U &var) {
+  index_t register_input(U &var) {
     var.idx = add_leaf();
+    var.tape_ptr = this;
+    return var.idx;
   }
 
   template <typename U>
-  void register_output(U &var) {
+  index_t register_output(U &var) {
     if (!var.is_active())
       var.idx = add_leaf();
     else
       var.idx = add_unary(var.idx, T(1));
+    var.tape_ptr = this;
+    return var.idx;
   }
+
+  void reset_adj() noexcept {
+    for (std::size_t i = 0; i < adj.size(); ++i) adj[i] = T(0);
+  }
+
+  void set_adj(index_type idx, T value) noexcept { adj[idx] = value; }
+
+  T get_adj(index_type idx) const noexcept { return adj[idx]; }
 
   /// Clear all recorded operations.
   void clear() noexcept {

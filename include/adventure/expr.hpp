@@ -44,6 +44,10 @@ struct ExprBase {
         std::forward<Writer>(w));
   }
 
+  constexpr Tape<T> *get_tape_ptr() const {
+    return static_cast<const Derived &>(*this).get_tape_ptr_impl();
+  }
+
   constexpr friend ADVENTURE_STRONG_INLINE bool operator==(const ExprBase &l,
                                                            T r) {
     return l.value() == r;
@@ -126,6 +130,8 @@ struct ConstExpr : ExprBase<ConstExpr<T>, T> {
   template <class Writer>
   constexpr ADVENTURE_STRONG_INLINE void derivative_impl(
       Writer &&) const noexcept {}
+
+  constexpr Tape<T> *get_tape_ptr_impl() const noexcept { return nullptr; }
 };
 
 template <class Op, class L, class R, class T>
@@ -167,6 +173,17 @@ struct BinExpr : ExprBase<BinExpr<Op, L, R, T>, T> {
       rhs_.derivative(ScaledWriter{w, right_coeff});
     }
   }
+
+  constexpr Tape<T> *get_tape_ptr_impl() const {
+    return get_common_tape_ptr(lhs_.get_tape_ptr(), rhs_.get_tape_ptr());
+  }
+
+ private:
+  constexpr Tape<T> *get_common_tape_ptr(Tape<T> *a, Tape<T> *b) const {
+    assert((!a || !b || a == b) &&
+           "Tape pointers of lhs and rhs of binary expression do not match.");
+    return a ? a : b;
+  }
 };
 
 /// Lift scalars into the expression system.
@@ -198,6 +215,8 @@ struct UnaryExpr : ExprBase<UnaryExpr<Op, E, T>, T> {
       expr_.derivative(scaled);
     }
   }
+
+  constexpr Tape<T> *get_tape_ptr_impl() const { return expr_.get_tape_ptr(); }
 };
 
 template <class L, class R, class T>
@@ -484,8 +503,10 @@ ADVENTURE_STRONG_INLINE Variable<typename Expr::scalar_type> materialise(
     return Variable<T>(primal);
   }
 
-  auto &t = get_tape<T>();
-  EdgeWriter<T> writer(t);
+  auto tape_ptr = e.get_tape_ptr();
+  if (!tape_ptr) return Variable<T>(primal);
+
+  EdgeWriter<T> writer(*tape_ptr);
   e.derivative(writer);
 
   if (writer.used == 0) {
@@ -493,11 +514,11 @@ ADVENTURE_STRONG_INLINE Variable<typename Expr::scalar_type> materialise(
   }
 
   // node metadata, arity = number of distinct parents
-  t.arities.push_back(writer.used);
-  t.adj.push_back(0);
+  tape_ptr->arities.push_back(writer.used);
+  tape_ptr->adj.push_back(0);
 
-  index_t idx = t.arities.size() - 1;
-  return Variable<T>(idx, primal);
+  index_t idx = tape_ptr->arities.size() - 1;
+  return Variable<T>(idx, primal, tape_ptr);
 }
 
 }  // namespace adventure

@@ -37,7 +37,7 @@ class Variable : public ExprBase<Variable<T>, T> {
 
   /// Default constructor (uninitialized, not tracked).
   constexpr ADVENTURE_STRONG_INLINE Variable() noexcept
-      : idx(invalid_idx), primal_(T(0)) {}
+      : idx(invalid_idx), primal_(T(0)), tape_ptr(nullptr) {}
 
   /// Construct a variable with a given value.
   /**
@@ -47,7 +47,7 @@ class Variable : public ExprBase<Variable<T>, T> {
    * @param v Primal value of the variable.
    */
   constexpr ADVENTURE_STRONG_INLINE Variable(T v) noexcept
-      : idx(invalid_idx), primal_(v) {}
+      : idx(invalid_idx), primal_(v), tape_ptr(nullptr) {}
 
   /// Copy constructor. Shallow copy of the tape index and primal value.
   /**
@@ -63,9 +63,10 @@ class Variable : public ExprBase<Variable<T>, T> {
    * in an invalid state.
    */
   constexpr ADVENTURE_STRONG_INLINE Variable(Variable &&other) noexcept
-      : idx(other.idx), primal_(other.primal_) {
+      : idx(other.idx), primal_(other.primal_), tape_ptr(other.tape_ptr) {
     other.idx = invalid_idx;
     other.primal_ = T(0);
+    other.tape_ptr = nullptr;
   }
 
   constexpr ~Variable() noexcept = default;
@@ -83,6 +84,8 @@ class Variable : public ExprBase<Variable<T>, T> {
     }
   }
 
+  constexpr Tape<T> *get_tape_ptr_impl() const { return tape_ptr; }
+
   /// Retrieve (or set) the gradient (adjoint) of this variable.
   /**
    * For tracked variables this returns a reference to the stored adjoint,
@@ -92,14 +95,18 @@ class Variable : public ExprBase<Variable<T>, T> {
     if (!is_active())
       throw std::logic_error(
           "Only gradients of active variables can be accessed!");
-    return get_tape<T>().adj_at(idx);
+    if (!tape_ptr)
+      throw std::logic_error("Active variable is not attached to a tape!");
+    return tape_ptr->adj_at(idx);
   }
 
   const T &grad() const {
     if (!is_active())
       throw std::logic_error(
           "Only gradients of active variables can be accessed!");
-    return get_tape<T>().adj_at(idx);
+    if (!tape_ptr)
+      throw std::logic_error("Active variable is not attached to a tape!");
+    return tape_ptr->adj_at(idx);
   }
 
   /// Return the tape index.
@@ -116,13 +123,16 @@ class Variable : public ExprBase<Variable<T>, T> {
       if (other.is_active()) {
         if (idx == other.idx) return *this;
         // Record y = x as a unary node with derivative 1.
-        idx = get_tape<T>().add_unary(other.idx, T(1));
+        tape_ptr = other.tape_ptr;
+        idx = tape_ptr->add_unary(other.idx, T(1));
       } else {
         idx = invalid_idx;
+        tape_ptr = nullptr;
       }
 #else
       idx = other.idx;
       primal_ = other.primal_;
+      tape_ptr = other.tape_ptr;
 #endif
     }
     return *this;
@@ -137,8 +147,10 @@ class Variable : public ExprBase<Variable<T>, T> {
     if (this != &other) {
       idx = other.idx;
       primal_ = other.primal_;
+      tape_ptr = other.tape_ptr;
       other.idx = invalid_idx;
       other.primal_ = T(0);
+      other.tape_ptr = nullptr;
     }
     return *this;
   }
@@ -150,6 +162,7 @@ class Variable : public ExprBase<Variable<T>, T> {
   ADVENTURE_STRONG_INLINE Variable &operator=(T rhs) noexcept {
     primal_ = rhs;
     idx = invalid_idx;
+    tape_ptr = nullptr;
     return *this;
   }
 
@@ -158,10 +171,13 @@ class Variable : public ExprBase<Variable<T>, T> {
   index_t idx;
   /// Primal value of this Variable.
   T primal_;
+  /// Pointer to the tape that this variable was registered on.
+  Tape<T> *tape_ptr;
 
   /// Construct a Variable from an existing tape index (used internally forl
   /// tracked results).
-  explicit Variable(index_t index, T primal) : idx(index), primal_(primal) {}
+  explicit Variable(index_t index, T primal, Tape<T> *tape_ptr)
+      : idx(index), primal_(primal), tape_ptr(tape_ptr) {}
 
   // Grant tape access to private members for registration.
   friend Tape<T>;

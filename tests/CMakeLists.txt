@@ -51,3 +51,7 @@ add_test(NAME test_multiple_expressions COMMAND test_multiple_expressions)
 add_executable(test_dynamic_array test_dynamic_array.cpp)
 target_link_libraries(test_dynamic_array PRIVATE adventure GTest::gtest_main)
 add_test(NAME test_dynamic_array COMMAND test_dynamic_array)
+
+add_executable(test_multi_tape test_multi_tape.cpp)
+target_link_libraries(test_multi_tape PRIVATE adventure GTest::gtest_main)
+add_test(NAME test_multi_tape COMMAND test_multi_tape)
