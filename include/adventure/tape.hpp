@@ -90,6 +90,19 @@ class Tape {
     return static_cast<index_type>(next);
   }
 
+  template <typename U>
+  void register_input(U &var) {
+    var.idx = add_leaf();
+  }
+
+  template <typename U>
+  void register_output(U &var) {
+    if (!var.is_active())
+      var.idx = add_leaf();
+    else
+      var.idx = add_unary(var.idx, T(1));
+  }
+
   /// Clear all recorded operations.
   void clear() noexcept {
     arities.clear();

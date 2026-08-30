@@ -18,17 +18,18 @@ namespace ad = adventure;
 
 template <typename Scalar>
 void thread_body(Scalar input, Scalar /*expected_grad*/) {
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(input);
-  ad::register_input(x);
+  tape.register_input(x);
   ad::Variable<Scalar> y = x * x;  // y = x^2
-  ad::register_output(y);
+  tape.register_output(y);
   y.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
   EXPECT_NEAR(x.grad(), Scalar(2) * input, 1e-9);
   // After clear, the tape should contain exactly three nodes (1 leaf + 2 unary
   // nodes)
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), 3u);
+  EXPECT_EQ(tape.size(), 3u);
 }
 
 TEST(ThreadIsolation, IndependentTapes) {

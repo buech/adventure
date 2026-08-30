@@ -17,14 +17,15 @@ namespace ad = adventure;
 template <typename Scalar>
 static void BM_Gradient(benchmark::State &state) {
   for (auto _ : state) {
-    ad::clear_tape<Scalar>();
+    auto &tape = ad::get_tape<Scalar>();
+    tape.clear();
     ad::Variable<Scalar> x(Scalar(1.0));
-    ad::register_input(x);
+    tape.register_input(x);
     ad::Variable<Scalar> y = x * x * x + exp(x) + log(x) / Scalar(2.0) * x +
                              Scalar(2.0) * (x + Scalar(1.0));
-    ad::register_output(y);
+    tape.register_output(y);
     y.grad() = Scalar(1);
-    ad::backward<Scalar>();
+    tape.backward();
     benchmark::DoNotOptimize(x.grad());
   }
   state.counters["tape_nodes"] =

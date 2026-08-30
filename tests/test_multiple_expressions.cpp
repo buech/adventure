@@ -18,9 +18,10 @@ TEST(MultipleExpressions, VariableReuse) {
   using Scalar = double;
 
   // 1. Fresh tape and a single input variable.
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(3.0));
-  ad::register_input(x);  // x becomes leaf node
+  tape.register_input(x);  // x becomes leaf node
 
   // 2. First expression: y = x * x
   ad::Variable<Scalar> y = x * x;  // binary node
@@ -29,9 +30,9 @@ TEST(MultipleExpressions, VariableReuse) {
   ad::Variable<Scalar> z = y + x;  // another binary node
 
   // Seed the output and run backward.
-  ad::register_output(z);
+  tape.register_output(z);
   z.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
 
   // 4. Verify gradients.
   // dz/dx = 2*x + 1  (x = 3 -> 7)
@@ -43,5 +44,5 @@ TEST(MultipleExpressions, VariableReuse) {
   // 5. Verify tape size.
   // Expected nodes: (1) leaf (x), (2) y = x*x, (3) z = y+x, (4) unary after
   // register_output(z)
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), 4u);
+  EXPECT_EQ(tape.size(), 4u);
 }

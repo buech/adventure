@@ -16,8 +16,9 @@ namespace ad = adventure;
 
 TEST(ExceptionSafety, TapeUnchangedAfterException) {
   using Scalar = double;
-  ad::clear_tape<Scalar>();
-  std::size_t size_before = ad::get_tape<Scalar>().size();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
+  std::size_t size_before = tape.size();
 
   try {
     // Build a variable, then deliberately throw before any tape operation.
@@ -29,5 +30,5 @@ TEST(ExceptionSafety, TapeUnchangedAfterException) {
 
   // Tape size must be unchanged because the exception occurred before any
   // tape-modifying operation.
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before);
+  EXPECT_EQ(tape.size(), size_before);
 }

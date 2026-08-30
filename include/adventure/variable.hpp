@@ -116,7 +116,7 @@ class Variable : public ExprBase<Variable<T>, T> {
       if (other.is_active()) {
         if (idx == other.idx) return *this;
         // Record y = x as a unary node with derivative 1.
-        idx = tape<T>.add_unary(other.idx, T(1));
+        idx = get_tape<T>().add_unary(other.idx, T(1));
       } else {
         idx = invalid_idx;
       }
@@ -163,11 +163,8 @@ class Variable : public ExprBase<Variable<T>, T> {
   /// tracked results).
   explicit Variable(index_t index, T primal) : idx(index), primal_(primal) {}
 
-  // Grant registration functions access to private members.
-  template <typename U>
-  friend void register_input(Variable<U> &var);
-  template <typename U>
-  friend void register_output(Variable<U> &var);
+  // Grant tape access to private members for registration.
+  friend Tape<T>;
 
   template <class Expr>
   friend Variable<typename Expr::scalar_type> materialise(
@@ -236,35 +233,6 @@ template <class T, class Expr,
 ADVENTURE_STRONG_INLINE auto &operator/=(Variable<T> &lhs, const Expr &rhs) {
   lhs = lhs / rhs;
   return lhs;
-}
-
-/// Register an input variable on the tape.
-template <typename T = double>
-void register_input(Variable<T> &var) {
-  auto &tape = get_tape<T>();
-  var.idx = tape.add_leaf();
-}
-
-template <typename T = double>
-void register_output(Variable<T> &var) {
-  auto &tape = Tape<T>::get_tape();
-  if (!var.is_active())
-    var.idx = tape.add_leaf();
-  else
-    var.idx = tape.add_unary(var.idx, T(1));
-}
-
-/// Clear the current thread-local tape for a given scalar type.
-template <typename T = double>
-void clear_tape() {
-  get_tape<T>().clear();
-}
-
-/// Perform a backward pass using the seeds stored in the variables' adjoints
-/// (via `grad()`).
-template <typename T = double>
-void backward() {
-  get_tape<T>().backward();
 }
 
 }  // namespace adventure

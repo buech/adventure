@@ -16,25 +16,25 @@ namespace ad = adventure;
 
 TEST(CustomNode, MetadataVerification) {
   using Scalar = double;
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
 
   ad::Variable<Scalar> x(Scalar(1.0));
   ad::Variable<Scalar> y(Scalar(2.0));
   ad::Variable<Scalar> z(Scalar(3.0));
-  ad::register_input(x);
-  ad::register_input(y);
-  ad::register_input(z);
+  tape.register_input(x);
+  tape.register_input(y);
+  tape.register_input(z);
 
   // Expression with three distinct parents: x*y + sin(z)
   ad::Variable<Scalar> f = x * y + sin(z);
   // Capture the index of the expression node before registering as output.
   std::size_t expr_idx = f.tape_index();
-  ad::register_output(f);
+  tape.register_output(f);
   f.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
 
   // The node created by materialise should be a node with arity 3.
-  const auto &tape = ad::get_tape<Scalar>();
   EXPECT_EQ(tape.arities[expr_idx], 3u);
 
   // Compute the start offset of this node by summing arities of previous nodes

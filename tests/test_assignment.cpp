@@ -30,9 +30,10 @@ TYPED_TEST(AssignmentTest, CopyActiveVariable) {
   using Scalar = typename TestFixture::Scalar;
 
   // Build a tape with a single input variable `x`.
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(3.0));
-  ad::register_input(x);  // x is now a leaf node
+  tape.register_input(x);  // x is now a leaf node
 
   // Copy-assign to a second variable `y`.
   ad::Variable<Scalar> y;  // default-constructed (invalid)
@@ -50,9 +51,9 @@ TYPED_TEST(AssignmentTest, CopyActiveVariable) {
 
   // Use only `y` in a downstream computation: f(y) = y * y
   ad::Variable<Scalar> f = y * y;
-  ad::register_output(f);
+  tape.register_output(f);
   f.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
 
   // Gradient of `y` must be the correct derivative 2*y.
   Scalar expected_y_grad = Scalar(2) * y.value();
@@ -65,9 +66,10 @@ TYPED_TEST(AssignmentTest, CopyActiveVariable) {
 TYPED_TEST(AssignmentTest, MoveActiveVariableTransfersNode) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> a(Scalar(5.0));
-  ad::register_input(a);  // a is a leaf node
+  tape.register_input(a);  // a is a leaf node
 
   // Move-assign into `b`.
   ad::Variable<Scalar> b = std::move(a);
@@ -79,9 +81,9 @@ TYPED_TEST(AssignmentTest, MoveActiveVariableTransfersNode) {
 
   // Use `b` in a simple expression to make sure the node is still usable.
   ad::Variable<Scalar> g = b + Scalar(2);
-  ad::register_output(g);
+  tape.register_output(g);
   g.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
 
   // The derivative of (b + 2) w.r.t. b is 1, so `b`'s gradient must be 1.
   EXPECT_EQ(b.grad(), Scalar(1));
@@ -90,9 +92,10 @@ TYPED_TEST(AssignmentTest, MoveActiveVariableTransfersNode) {
 TYPED_TEST(AssignmentTest, SelfAssignmentLeavesNodeUnchanged) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> v(Scalar(7.0));
-  ad::register_input(v);
+  tape.register_input(v);
 
   std::size_t old_idx = v.tape_index();
 #pragma clang diagnostic push
@@ -107,36 +110,38 @@ TYPED_TEST(AssignmentTest, SelfAssignmentLeavesNodeUnchanged) {
 TYPED_TEST(AssignmentTest, CompoundAddAssign) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(2.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // y = x; then y += 3
   ad::Variable<Scalar> y = x;
   y += Scalar(3.0);
   EXPECT_EQ(y.value(), Scalar(5.0));
 
-  ad::register_output(y);
+  tape.register_output(y);
   y.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
   EXPECT_EQ(x.grad(), Scalar(1));
 }
 
 TYPED_TEST(AssignmentTest, CompoundMulAssign) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(4.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // y = x; then y *= 2
   ad::Variable<Scalar> y = x;
   y *= Scalar(2.0);
   EXPECT_EQ(y.value(), Scalar(8.0));
 
-  ad::register_output(y);
+  tape.register_output(y);
   y.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
   // dy/dx = 2
   EXPECT_EQ(x.grad(), Scalar(2));
 }
@@ -144,9 +149,10 @@ TYPED_TEST(AssignmentTest, CompoundMulAssign) {
 TYPED_TEST(AssignmentTest, CompoundAddAssignExpr) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(2.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // y = x; then y += x * x  (y = x + x^2)
   ad::Variable<Scalar> y = x;
@@ -154,9 +160,9 @@ TYPED_TEST(AssignmentTest, CompoundAddAssignExpr) {
   // Expected value: x + x^2 = 2 + 4 = 6
   EXPECT_EQ(y.value(), Scalar(6));
 
-  ad::register_output(y);
+  tape.register_output(y);
   y.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
   // dy/dx = 1 + 2*x = 1 + 4 = 5
   EXPECT_EQ(x.grad(), Scalar(5));
 }
@@ -164,9 +170,10 @@ TYPED_TEST(AssignmentTest, CompoundAddAssignExpr) {
 TYPED_TEST(AssignmentTest, CompoundMulAssignExpr) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(2.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // y = x; then y *= x + x  (y = x * (2x) = 2x^2)
   ad::Variable<Scalar> y = x;
@@ -174,9 +181,9 @@ TYPED_TEST(AssignmentTest, CompoundMulAssignExpr) {
   // Expected value: 2 * 2^2 = 8
   EXPECT_EQ(y.value(), Scalar(8));
 
-  ad::register_output(y);
+  tape.register_output(y);
   y.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
   // dy/dx = 4*x = 8
   EXPECT_EQ(x.grad(), Scalar(8));
 }
@@ -184,9 +191,10 @@ TYPED_TEST(AssignmentTest, CompoundMulAssignExpr) {
 TYPED_TEST(AssignmentTest, AssignFromPassive) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(3.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // Assign a passive scalar value.
   x = Scalar(5.0);
@@ -196,12 +204,12 @@ TYPED_TEST(AssignmentTest, AssignFromPassive) {
   EXPECT_EQ(x.value(), Scalar(5.0));
 
   // Reactivate by registering input again.
-  ad::register_input(x);
+  tape.register_input(x);
   // Compute a simple expression to test tape.
   ad::Variable<Scalar> y = x * x;
-  ad::register_output(y);
+  tape.register_output(y);
   y.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
   EXPECT_EQ(x.grad(), Scalar(2) * Scalar(5.0));
 }
 

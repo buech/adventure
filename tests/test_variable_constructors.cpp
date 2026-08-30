@@ -57,7 +57,7 @@ TYPED_TEST(VariableCtorTest, CopyCtorInactive) {
   using Scalar = typename TestFixture::Scalar;
 
   auto &tape = ad::get_tape<Scalar>();
-  ad::clear_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> a;
   std::size_t tape_size_before = tape.size();
 
@@ -69,16 +69,17 @@ TYPED_TEST(VariableCtorTest, CopyCtorInactive) {
 TYPED_TEST(VariableCtorTest, CopyCtorLeaf) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(1.0));
-  ad::register_input(x);  // x becomes a leaf (idx = 0)
+  tape.register_input(x);  // x becomes a leaf (idx = 0)
 
-  std::size_t tape_size_before = ad::get_tape<Scalar>().size();
+  std::size_t tape_size_before = tape.size();
 
   ad::Variable<Scalar> y(x);  // copy ctor
   EXPECT_EQ(y.tape_index(), x.tape_index())
       << "Copy ctor must not allocate a new node";
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), tape_size_before);
+  EXPECT_EQ(tape.size(), tape_size_before);
 }
 
 // Copy-construction of a temporary returned from a function/operator.
@@ -87,19 +88,20 @@ TYPED_TEST(VariableCtorTest, CopyCtorLeaf) {
 TYPED_TEST(VariableCtorTest, CopyCtorFromReturnedTemporary) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(2.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // Record tape size before creating the temporary.
-  std::size_t size_before = ad::get_tape<Scalar>().size();
+  std::size_t size_before = tape.size();
 
   // The function creates a temporary (x*x) and returns it.
   ad::Variable<Scalar> y = detail::make_quadventureatic(x);
 
   // The temporary created inside make_quadventureatic should add exactly ONE
   // new node.
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before + 1);
+  EXPECT_EQ(tape.size(), size_before + 1);
   // y must refer to that node.
   EXPECT_NE(y.tape_index(), ad::Variable<Scalar>::invalid_idx);
 }
@@ -107,9 +109,10 @@ TYPED_TEST(VariableCtorTest, CopyCtorFromReturnedTemporary) {
 TYPED_TEST(VariableCtorTest, MoveCtorTransfersNode) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> a(Scalar(5.0));
-  ad::register_input(a);  // a is a leaf (idx = 0)
+  tape.register_input(a);  // a is a leaf (idx = 0)
 
   ad::Variable<Scalar> b(std::move(a));  // move ctor
 
@@ -122,7 +125,8 @@ TYPED_TEST(VariableCtorTest, MoveCtorTransfersNode) {
 TYPED_TEST(VariableCtorTest, MoveCtorInactive) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> a;
   ad::Variable<Scalar> b(std::move(a));
 
@@ -135,18 +139,19 @@ TYPED_TEST(VariableCtorTest, MoveCtorInactive) {
 TYPED_TEST(VariableCtorTest, CopyCtorSharesAdjoint) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(3.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // y is a shallow copy of x.
   ad::Variable<Scalar> y(x);
 
   // Use only y in a downstream computation.
   ad::Variable<Scalar> f = y * y;  // f = y^2
-  ad::register_output(f);
+  tape.register_output(f);
   f.grad() = Scalar(1);
-  ad::backward<Scalar>();
+  tape.backward();
 
   // Because y and x share the same tape node, both must have the same
   // gradient (2 * original value).
@@ -158,52 +163,56 @@ TYPED_TEST(VariableCtorTest, CopyCtorSharesAdjoint) {
 TYPED_TEST(VariableCtorTest, CopyCtorConstant) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> c = detail::make_constant<Scalar>(Scalar(7.0));
-  std::size_t tape_size_before = ad::get_tape<Scalar>().size();
+  std::size_t tape_size_before = tape.size();
 
   ad::Variable<Scalar> d(c);
   EXPECT_EQ(d.tape_index(), ad::Variable<Scalar>::invalid_idx);
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), tape_size_before);
+  EXPECT_EQ(tape.size(), tape_size_before);
 }
 
 TYPED_TEST(VariableCtorTest, SelfCopyCtorNoEffect) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> v(Scalar(1.0));
-  ad::register_input(v);
+  tape.register_input(v);
   std::size_t idx_before = v.tape_index();
-  std::size_t tape_before = ad::get_tape<Scalar>().size();
+  std::size_t tape_before = tape.size();
 
   ad::Variable<Scalar> w(v);
   EXPECT_EQ(w.tape_index(), idx_before);
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), tape_before);
+  EXPECT_EQ(tape.size(), tape_before);
 }
 
 TYPED_TEST(VariableCtorTest, CopyCtorNonLeaf) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(2.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   // Build a non-leaf node.
   ad::Variable<Scalar> y = x + Scalar(3.0);
-  std::size_t tape_size_before = ad::get_tape<Scalar>().size();
+  std::size_t tape_size_before = tape.size();
 
   // Copy-construct y.
   ad::Variable<Scalar> z(y);
   EXPECT_EQ(z.tape_index(), y.tape_index());
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), tape_size_before);
+  EXPECT_EQ(tape.size(), tape_size_before);
 }
 
 TYPED_TEST(VariableCtorTest, MoveCtorNonLeaf) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(2.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
   ad::Variable<Scalar> y = x * Scalar(5.0);
   std::size_t idx_before = y.tape_index();
@@ -216,30 +225,32 @@ TYPED_TEST(VariableCtorTest, MoveCtorNonLeaf) {
 TYPED_TEST(VariableCtorTest, CopyCtorDoesNotGrowTape) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(1.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
-  std::size_t size_before = ad::get_tape<Scalar>().size();
+  std::size_t size_before = tape.size();
 
   ad::Variable<Scalar> a(x);
   ad::Variable<Scalar> b(a);
   [[maybe_unused]] ad::Variable<Scalar> c(b);
 
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before);
+  EXPECT_EQ(tape.size(), size_before);
 }
 
 TYPED_TEST(VariableCtorTest, MoveCtorDoesNotGrowTape) {
   using Scalar = typename TestFixture::Scalar;
 
-  ad::clear_tape<Scalar>();
+  auto &tape = ad::get_tape<Scalar>();
+  tape.clear();
   ad::Variable<Scalar> x(Scalar(1.0));
-  ad::register_input(x);
+  tape.register_input(x);
 
-  std::size_t size_before = ad::get_tape<Scalar>().size();
+  std::size_t size_before = tape.size();
 
   ad::Variable<Scalar> a(std::move(x));
-  EXPECT_EQ(ad::get_tape<Scalar>().size(), size_before);
+  EXPECT_EQ(tape.size(), size_before);
 }
 
 }  // namespace

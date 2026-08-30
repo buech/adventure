@@ -23,14 +23,15 @@ automatic differentiation using Jacobi tapes and expression templates.
 namespace ad = adventure;
 
 int main() {
+  auto &tape = ad::get_tape<double>();
   ad::Variable<double> x(2.0);
 
-  ad::register_input(x);
+  tape.register_input(x);
   ad::Variable<double> y = x * x;
-  ad::register_output(y);
+  tape.register_output(y);
 
   y.grad() = 1.0;          // seed output
-  ad::backward<double>();  // compute adjoints
+  tape.backward();         // compute adjoints
   double dx = x.grad();    // gradient dy/dx
 
   std::cout << "x.grad() = " << dx << std::endl;
