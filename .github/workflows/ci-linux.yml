@@ -8,9 +8,12 @@ on:
 
 jobs:
   build-and-test:
+    name: Build and Test (${{ matrix.compiler }}, ${{ matrix.build_type }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
         include:
           - compiler: gcc
             cc: gcc
@@ -38,7 +41,7 @@ jobs:
       - name: Configure
         run: |
           rm -rf build
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: |
