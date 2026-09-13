@@ -39,6 +39,9 @@ if(BUILD_DOCS)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM)
+
+        install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/
+                DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/adventure)
     else()
         message(STATUS "Doxygen not found, documentation target 'doc' will not be created")
     endif()
@@ -120,6 +123,14 @@ install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/cmake/adventureConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/cmake/adventureConfigVersion.cmake"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/adventure)
+
+# Install README, LICENSE and NOTICE files
+install(FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+        "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE-APACHE"
+        "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE-MIT"
+        "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE"
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/adventure)
 
 # Export the target set for the install tree
 install(EXPORT adventureTargets
