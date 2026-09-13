@@ -20,32 +20,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(GNUInstallDirs)
 
 # Doxygen documentation
-option(BUILD_DOCS "Build documentation" ON)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" ON)
-
-if(BUILD_DOCS)
-    find_package(Doxygen)
-    if(DOXYGEN_FOUND)
-        # Configure Doxygen input file
-        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-
-        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-
-        # Add a custom target to generate the documentation
-        add_custom_target(doc
-            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating API documentation with Doxygen"
-            VERBATIM)
-
-        install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/
-                DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/adventure)
-    else()
-        message(STATUS "Doxygen not found, documentation target 'doc' will not be created")
-    endif()
-endif()
+option(BUILD_DOCS "Build documentation" ON)
 
 # Header-only interface library
 add_library(adventure INTERFACE)
@@ -104,6 +81,29 @@ if(BUILD_BENCHMARKS)
         )
     FetchContent_MakeAvailable(benchmark)
     add_subdirectory(benchmarks)
+endif()
+
+if(BUILD_DOCS)
+    find_package(Doxygen)
+    if(DOXYGEN_FOUND)
+        # Configure Doxygen input file
+        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+
+        # Add a custom target to generate the documentation
+        add_custom_target(doc
+            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen"
+            VERBATIM)
+
+        install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/
+                DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/adventure)
+    else()
+        message(STATUS "Doxygen not found, documentation target 'doc' will not be created")
+    endif()
 endif()
 
 # Optional install step
