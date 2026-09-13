@@ -72,6 +72,7 @@ configure_package_config_file(
 # GoogleTest
 if(BUILD_TESTS)
     include(FetchContent)
+    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
         googletest
         DOWNLOAD_EXTRACT_TIMESTAMP ON
@@ -90,7 +91,9 @@ if(BUILD_BENCHMARKS)
     if(NOT BUILD_TESTS)
         include(FetchContent)
     endif()
-    set(BENCHMARK_ENABLE_TESTING NO)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
         benchmark
         DOWNLOAD_EXTRACT_TIMESTAMP ON
