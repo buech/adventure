@@ -19,10 +19,10 @@ add_compile_options(-Wall -Wpedantic)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(GNUInstallDirs)
 
-# Doxygen documentation
-option(BUILD_TESTS "Build tests" ON)
-option(BUILD_BENCHMARKS "Build benchmarks" ON)
-option(BUILD_DOCS "Build documentation" ON)
+# CMake options
+option(ADVENTURE_BUILD_TESTS "Build tests" ON)
+option(ADVENTURE_BUILD_BENCHMARKS "Build benchmarks" ON)
+option(ADVENTURE_BUILD_DOCS "Build documentation" ON)
 
 # Header-only interface library
 add_library(adventure INTERFACE)
@@ -50,7 +50,7 @@ configure_package_config_file(
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/adventure")
 
 # GoogleTest
-if(BUILD_TESTS)
+if(ADVENTURE_BUILD_TESTS)
     include(FetchContent)
     set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
@@ -67,8 +67,8 @@ if(BUILD_TESTS)
 endif()
 
 # Benchmarks (optional)
-if(BUILD_BENCHMARKS)
-    if(NOT BUILD_TESTS)
+if(ADVENTURE_BUILD_BENCHMARKS)
+    if(NOT ADVENTURE_BUILD_TESTS)
         include(FetchContent)
     endif()
     set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
@@ -83,7 +83,7 @@ if(BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
-if(BUILD_DOCS)
+if(ADVENTURE_BUILD_DOCS)
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
         # Configure Doxygen input file

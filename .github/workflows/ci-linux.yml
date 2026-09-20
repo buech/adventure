@@ -41,7 +41,7 @@ jobs:
       - name: Configure
         run: |
           rm -rf build
-          cmake -S . -B build -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_DOCS=off
+          cmake -S . -B build -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DADVENTURE_BUILD_DOCS=off
 
       - name: Build
         run: |
