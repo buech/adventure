@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "adventure/expr.hpp"
+#include "adventure/variable.hpp"
 
 namespace ad = adventure;
 

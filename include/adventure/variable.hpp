@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
 #include <type_traits>
 
@@ -183,6 +184,66 @@ class Variable : public ExprBase<Variable<T>, T> {
     return *this;
   }
 };
+
+/// Variable is a leaf node with a single parent (itself) when active.
+template <class T>
+struct parent_count<Variable<T>> : std::integral_constant<std::size_t, 1> {};
+
+template <class T>
+struct EdgeWriter {
+  Tape<T> &tape;
+  std::size_t start;
+  std::uint8_t used = 0;
+
+  explicit EdgeWriter(Tape<T> &t) noexcept : tape(t), start(t.edges.size()) {}
+
+  ADVENTURE_STRONG_INLINE void operator()(typename Tape<T>::index_type parent,
+                                          T coeff) noexcept {
+    if (coeff == T(0)) return;
+
+    for (std::uint8_t i = 0; i < used; ++i) {
+      auto &edge = tape.edges[start + i];
+      if (edge.parent == parent) {
+        // same parent, just add the coefficient
+        edge.coeff += coeff;
+        return;
+      }
+    }
+
+    tape.edges.emplace_back(parent, coeff);
+    ++used;
+  }
+};
+
+template <class Expr>
+ADVENTURE_STRONG_INLINE Variable<typename Expr::scalar_type> materialise(
+    const Expr &e) noexcept {
+  using T = typename Expr::scalar_type;
+  T primal = e.value();
+
+  // How many distinct parents *could* this expression possibly have?
+  constexpr std::size_t MAX_PARENTS = parent_count<Expr>::value;
+
+  // pure constant -> no tape node
+  if constexpr (MAX_PARENTS == 0) {
+    return Variable<T>(primal);
+  }
+
+  auto &t = get_tape<T>();
+  EdgeWriter<T> writer(t);
+  e.derivative(writer, T(1));
+
+  if (writer.used == 0) {
+    return Variable<T>(primal);
+  }
+
+  // node metadata, arity = number of distinct parents
+  t.arities.push_back(writer.used);
+  t.adj.push_back(0);
+
+  index_t idx = t.arities.size() - 1;
+  return Variable<T>(idx, primal);
+}
 
 template <class T>
 ADVENTURE_STRONG_INLINE auto &operator+=(Variable<T> &lhs, T rhs) {
