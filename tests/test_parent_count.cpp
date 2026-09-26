@@ -6,8 +6,6 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <type_traits>
-
 #include "adventure/expr.hpp"
 #include "adventure/variable.hpp"
 

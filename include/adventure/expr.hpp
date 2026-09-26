@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <cmath>
 #include <type_traits>
 #include <utility>
 
