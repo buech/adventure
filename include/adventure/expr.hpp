@@ -43,9 +43,9 @@ struct ExprBase {
   }
 
   template <class Writer>
-  constexpr ADVENTURE_STRONG_INLINE void derivative(Writer &&w) const {
-    static_cast<const Derived &>(*this).derivative_impl(
-        std::forward<Writer>(w));
+  constexpr ADVENTURE_STRONG_INLINE void derivative(Writer &&w, T coeff) const {
+    static_cast<const Derived &>(*this).derivative_impl(std::forward<Writer>(w),
+                                                        coeff);
   }
 
   constexpr friend ADVENTURE_STRONG_INLINE bool operator==(const ExprBase &l,
@@ -128,8 +128,8 @@ struct ConstExpr : ExprBase<ConstExpr<T>, T> {
   constexpr ADVENTURE_STRONG_INLINE T value_impl() const noexcept { return v_; }
 
   template <class Writer>
-  constexpr ADVENTURE_STRONG_INLINE void derivative_impl(
-      Writer &&) const noexcept {}
+  constexpr ADVENTURE_STRONG_INLINE void derivative_impl(Writer &&,
+                                                         T) const noexcept {}
 };
 
 template <class Op, class L, class R, class T>
@@ -151,24 +151,15 @@ struct BinExpr : ExprBase<BinExpr<Op, L, R, T>, T> {
 
   template <class Writer>
   constexpr ADVENTURE_STRONG_INLINE void derivative_impl(
-      Writer &&w) const noexcept {
-    struct ScaledWriter {
-      Writer &w_;
-      T factor_;
-      constexpr ADVENTURE_STRONG_INLINE void operator()(
-          index_t parent, T coeff) const noexcept {
-        w_(parent, coeff * factor_);
-      }
-    };
-
+      Writer &&w, T coeff) const noexcept {
     if constexpr (parent_count<L>::value != 0) {
-      T left_coeff = Op::template coeff_left<T>(vLhs_, vRhs_);
-      lhs_.derivative(ScaledWriter{w, left_coeff});
+      T left_coeff = coeff * Op::template coeff_left<T>(vLhs_, vRhs_);
+      lhs_.derivative(w, left_coeff);
     }
 
     if constexpr (parent_count<R>::value != 0) {
-      T right_coeff = Op::template coeff_right<T>(vLhs_, vRhs_);
-      rhs_.derivative(ScaledWriter{w, right_coeff});
+      T right_coeff = coeff * Op::template coeff_right<T>(vLhs_, vRhs_);
+      rhs_.derivative(w, right_coeff);
     }
   }
 };
@@ -195,11 +186,10 @@ struct UnaryExpr : ExprBase<UnaryExpr<Op, E, T>, T> {
 
   template <class Writer>
   constexpr ADVENTURE_STRONG_INLINE void derivative_impl(
-      Writer &&w) const noexcept {
+      Writer &&w, T coeff) const noexcept {
     if constexpr (parent_count<E>::value != 0) {
-      T factor = Op::derivative(v_);
-      auto scaled = [&](index_t parent, T coeff) { w(parent, coeff * factor); };
-      expr_.derivative(scaled);
+      T factor = coeff * Op::derivative(v_);
+      expr_.derivative(w, factor);
     }
   }
 };
@@ -490,7 +480,7 @@ ADVENTURE_STRONG_INLINE Variable<typename Expr::scalar_type> materialise(
 
   auto &t = get_tape<T>();
   EdgeWriter<T> writer(t);
-  e.derivative(writer);
+  e.derivative(writer, T(1));
 
   if (writer.used == 0) {
     return Variable<T>(primal);

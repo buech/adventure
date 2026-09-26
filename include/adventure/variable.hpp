@@ -77,9 +77,10 @@ class Variable : public ExprBase<Variable<T>, T> {
   constexpr ADVENTURE_STRONG_INLINE T &value_impl() noexcept { return primal_; }
 
   template <class Writer>
-  ADVENTURE_STRONG_INLINE void derivative_impl(Writer &&w) const noexcept {
+  ADVENTURE_STRONG_INLINE void derivative_impl(Writer &&w,
+                                               T coeff) const noexcept {
     if (is_active()) {
-      w(idx, T(1));  // dx/dx = 1
+      w(idx, coeff);
     }
   }
 
