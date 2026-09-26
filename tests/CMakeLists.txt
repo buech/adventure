@@ -59,3 +59,7 @@ add_test(NAME test_dynamic_array COMMAND test_dynamic_array)
 add_executable(test_multi_tape test_multi_tape.cpp)
 target_link_libraries(test_multi_tape PRIVATE adventure GTest::gtest_main)
 add_test(NAME test_multi_tape COMMAND test_multi_tape)
+
+add_executable(test_tangent test_tangent.cpp)
+target_link_libraries(test_tangent PRIVATE adventure GTest::gtest_main)
+add_test(NAME test_tangent COMMAND test_tangent)
