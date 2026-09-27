@@ -1,6 +1,6 @@
 # adventure - A Minimal Reverse-Mode Automatic Differentiation Library for C++
 
-![CI](https://github.com/buech/adventure/actions/workflows/ci-linux.yml/badge.svg)
+[![CI](https://github.com/buech/adventure/actions/workflows/ci-linux.yml/badge.svg)](https://github.com/buech/adventure/actions/workflows/ci-linux.yml)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22991133.svg)](https://doi.org/10.5281/zenodo.22991133)
 
 adventure is a fast and lightweight C++20 library providing reverse-mode
