@@ -13,6 +13,7 @@
 
 #include "adventure/config.hpp"
 #include "adventure/ops.hpp"
+#include "adventure/tape.hpp"
 
 namespace adventure {
 
@@ -35,10 +36,8 @@ struct ExprBase {
     return static_cast<Derived &>(*this).value_impl();
   }
 
-  template <class Writer>
-  constexpr ADVENTURE_STRONG_INLINE void derivative(Writer &&w, T coeff) const {
-    static_cast<const Derived &>(*this).derivative_impl(std::forward<Writer>(w),
-                                                        coeff);
+  constexpr ADVENTURE_STRONG_INLINE index_t derivative(Tape<T> &tape) const {
+    return static_cast<const Derived &>(*this).derivative_impl(tape);
   }
 
   constexpr friend ADVENTURE_STRONG_INLINE bool operator==(const ExprBase &l,
@@ -116,9 +115,10 @@ struct ConstExpr : ExprBase<ConstExpr<T>, T> {
 
   constexpr ADVENTURE_STRONG_INLINE T value_impl() const noexcept { return v_; }
 
-  template <class Writer>
-  constexpr ADVENTURE_STRONG_INLINE void derivative_impl(Writer &&,
-                                                         T) const noexcept {}
+  constexpr ADVENTURE_STRONG_INLINE index_t
+  derivative_impl(Tape<T> &tape) const noexcept {
+    return tape.add_constant(value_impl());
+  }
 };
 
 template <class Op, class L, class R, class T>
@@ -138,18 +138,11 @@ struct BinExpr : ExprBase<BinExpr<Op, L, R, T>, T> {
     return Op::template value<T>(vLhs_, vRhs_);
   }
 
-  template <class Writer>
-  constexpr ADVENTURE_STRONG_INLINE void derivative_impl(
-      Writer &&w, T coeff) const noexcept {
-    if constexpr (parent_count<L>::value != 0) {
-      T left_coeff = coeff * Op::template coeff_left<T>(vLhs_, vRhs_);
-      lhs_.derivative(w, left_coeff);
-    }
-
-    if constexpr (parent_count<R>::value != 0) {
-      T right_coeff = coeff * Op::template coeff_right<T>(vLhs_, vRhs_);
-      rhs_.derivative(w, right_coeff);
-    }
+  constexpr ADVENTURE_STRONG_INLINE index_t
+  derivative_impl(Tape<T> &tape) const noexcept {
+    const index_t lhs_idx = lhs_.derivative(tape);
+    const index_t rhs_idx = rhs_.derivative(tape);
+    return tape.add_binary(Op::opcode, lhs_idx, rhs_idx, value_impl());
   }
 };
 
@@ -173,13 +166,10 @@ struct UnaryExpr : ExprBase<UnaryExpr<Op, E, T>, T> {
     return Op::template value<T>(v_);
   }
 
-  template <class Writer>
-  constexpr ADVENTURE_STRONG_INLINE void derivative_impl(
-      Writer &&w, T coeff) const noexcept {
-    if constexpr (parent_count<E>::value != 0) {
-      T factor = coeff * Op::derivative(v_);
-      expr_.derivative(w, factor);
-    }
+  constexpr ADVENTURE_STRONG_INLINE index_t
+  derivative_impl(Tape<T> &tape) const noexcept {
+    const index_t idx = expr_.derivative(tape);
+    return tape.add_unary(Op::opcode, idx, value_impl());
   }
 };
 

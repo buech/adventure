@@ -13,7 +13,34 @@
 
 namespace adventure {
 
+enum class OpCode : std::uint8_t {
+  LEAF,  // Input / Independent variable
+  CONSTANT,
+  COPY,  // y = x
+  ADD,   // y = a + b
+  SUB,   // y = a - b
+  MUL,   // y = a * b
+  DIV,   // y = a / b
+  MIN,
+  MAX,
+  SIN,  // y = sin(a)
+  COS,  // y = cos(a)
+  EXP,  // y = exp(a)
+  LOG,  // y = log(a)
+  LOG10,
+  TANH,
+  TAN,
+  ATAN,
+  ABS,
+  SQRT,
+  QBRT,
+  NEG,
+  POW,
+  // ... other unary and binary ops
+};
+
 struct AddOp {
+  static constexpr OpCode opcode = OpCode::ADD;
   template <class T>
   static constexpr T coeff_left(const T &, const T &) {
     return T(1);
@@ -29,6 +56,7 @@ struct AddOp {
 };
 
 struct SubOp {
+  static constexpr OpCode opcode = OpCode::SUB;
   template <class T>
   static constexpr T coeff_left(const T &, const T &) {
     return T(1);
@@ -44,6 +72,8 @@ struct SubOp {
 };
 
 struct MulOp {
+  static constexpr OpCode opcode = OpCode::MUL;
+
   template <class T>
   static constexpr T coeff_left(const T &a, const T &b) {
     return b;
@@ -59,6 +89,8 @@ struct MulOp {
 };
 
 struct DivOp {
+  static constexpr OpCode opcode = OpCode::DIV;
+
   template <class T>
   static constexpr T coeff_left(const T &a, const T &b) {
     return T(1) / b;
@@ -74,6 +106,8 @@ struct DivOp {
 };
 
 struct MinOp {
+  static constexpr OpCode opcode = OpCode::MIN;
+
   template <class T>
   static constexpr T value(const T &a, const T &b) {
     return std::min(a, b);
@@ -89,6 +123,8 @@ struct MinOp {
 };
 
 struct MaxOp {
+  static constexpr OpCode opcode = OpCode::MAX;
+
   template <class T>
   static constexpr T value(const T &a, const T &b) {
     return std::max(a, b);
@@ -104,6 +140,8 @@ struct MaxOp {
 };
 
 struct SinOp {
+  static constexpr OpCode opcode = OpCode::SIN;
+
   template <class T>
   static constexpr T derivative(const T &a) {
     return std::cos(a);
@@ -115,6 +153,8 @@ struct SinOp {
 };
 
 struct CosOp {
+  static constexpr OpCode opcode = OpCode::COS;
+
   template <class T>
   static constexpr T derivative(const T &a) {
     return -std::sin(a);
@@ -126,6 +166,8 @@ struct CosOp {
 };
 
 struct ExpOp {
+  static constexpr OpCode opcode = OpCode::EXP;
+
   template <class T>
   static constexpr T derivative(const T &a) {
     return std::exp(a);
@@ -137,6 +179,8 @@ struct ExpOp {
 };
 
 struct LogOp {
+  static constexpr OpCode opcode = OpCode::LOG;
+
   template <class T>
   static constexpr T derivative(const T &a) {
     return T(1) / a;
@@ -148,6 +192,8 @@ struct LogOp {
 };
 
 struct Log10Op {
+  static constexpr OpCode opcode = OpCode::LOG10;
+
   // d/dx log10(x) = 1 / (x * ln(10))
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -161,6 +207,8 @@ struct Log10Op {
 };
 
 struct TanhOp {
+  static constexpr OpCode opcode = OpCode::TANH;
+
   // d/dx tanh(x) = 1 - tanh(x)^2
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -175,6 +223,8 @@ struct TanhOp {
 };
 
 struct TanOp {
+  static constexpr OpCode opcode = OpCode::TAN;
+
   // d/dx tan(x) = 1 / cos(x)^2
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -188,6 +238,8 @@ struct TanOp {
 };
 
 struct AtanOp {
+  static constexpr OpCode opcode = OpCode::ATAN;
+
   // d/dx atan(x) = 1 / (1 + x^2)
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -201,6 +253,8 @@ struct AtanOp {
 };
 
 struct AbsOp {
+  static constexpr OpCode opcode = OpCode::ABS;
+
   // d/dx |a| = (a > 0) ? 1 : (a < 0) ? -1 : 0
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -214,6 +268,8 @@ struct AbsOp {
 };
 
 struct SqrtOp {
+  static constexpr OpCode opcode = OpCode::SQRT;
+
   // d/dx sqrt(x) = 0.5 / sqrt(x)
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -227,6 +283,8 @@ struct SqrtOp {
 };
 
 struct CbrtOp {
+  static constexpr OpCode opcode = OpCode::QBRT;
+
   // d/dx cbrt(x) = 1 / (3 * cbrt(x) * cbrt(x))
   template <class T>
   static constexpr T derivative(const T &a) {
@@ -240,6 +298,8 @@ struct CbrtOp {
 };
 
 struct NegOp {
+  static constexpr OpCode opcode = OpCode::NEG;
+
   template <class T>
   static constexpr T value(const T &a) {
     return -a;
@@ -252,6 +312,8 @@ struct NegOp {
 };
 
 struct PowOp {
+  static constexpr OpCode opcode = OpCode::POW;
+
   // d(a^b)/da = b * a^(b-1)
   template <class T>
   static constexpr T coeff_left(const T &a, const T &b) {

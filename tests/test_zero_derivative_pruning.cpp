@@ -27,14 +27,17 @@ TEST(ZeroDerivativePruning, MinOpEdgePruned) {
 
   // y = min(a,b) - derivative w.r.t. b should be zero and thus pruned
   ad::Variable<Scalar> y = min(a, b);
+  // Capture the MIN node index before register_output wraps it in a COPY node.
+  const std::size_t node_idx = y.tape_index();
   tape.register_output(y);
   y.grad() = Scalar(1);
   tape.backward();
 
-  // The node for `y` should have arity 1 (only parent a) because the
-  // coefficient for b is zero and should have been pruned.
-  std::size_t node_idx = y.tape_index();
-  EXPECT_EQ(tape.arities[node_idx], 1u);
+  // The node for `y` is a MIN node with both operands recorded; the
+  // pruning happens dynamically during the backward sweep, which routes
+  // the seed only to the winning operand.
+  EXPECT_EQ(tape.ops[node_idx], ad::OpCode::MIN);
+  EXPECT_EQ(tape.op_arity(tape.ops[node_idx]), 2u);
 
   // Verify gradients: a gets 1, b gets 0
   EXPECT_EQ(a.grad(), Scalar(1));
@@ -56,14 +59,17 @@ TEST(ZeroDerivativePruning, ComplexExpressionAllZero) {
   //   y = (min(a, b) + max(a, b)) * 0
   // Multiplication by zero makes total derivative zero.
   ad::Variable<Scalar> y = (min(a, b) + max(a, b)) * Scalar(0.0);
+  // Capture the MUL node index before register_output wraps it in a COPY node.
+  const std::size_t node_idx = y.tape_index();
   tape.register_output(y);
   y.grad() = Scalar(1);
   tape.backward();
 
-  std::size_t node_idx = y.tape_index();
-  EXPECT_EQ(tape.arities[node_idx], 0u)
+  EXPECT_EQ(tape.ops[node_idx], ad::OpCode::MUL)
       << "All derivative coefficients should be pruned";
 
+  // The multiplier is the constant 0, so the backward sweep contributes
+  // nothing to either input.
   EXPECT_EQ(a.grad(), Scalar(0));
   EXPECT_EQ(b.grad(), Scalar(0));
 }
