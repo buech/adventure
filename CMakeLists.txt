@@ -23,6 +23,7 @@ include(GNUInstallDirs)
 option(ADVENTURE_BUILD_TESTS "Build tests" ON)
 option(ADVENTURE_BUILD_BENCHMARKS "Build benchmarks" ON)
 option(ADVENTURE_BUILD_DOCS "Build documentation" ON)
+option(ADVENTURE_ENABLE_JIT "Enable LLVM JIT compilation for tape evaluation" ON)
 
 # Header-only interface library
 add_library(adventure INTERFACE)
@@ -104,6 +105,33 @@ if(ADVENTURE_BUILD_DOCS)
     else()
         message(STATUS "Doxygen not found, documentation target 'doc' will not be created")
     endif()
+endif()
+
+if(ADVENTURE_ENABLE_JIT)
+    find_package(LLVM REQUIRED CONFIG)
+
+    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+    message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+    # Include LLVM headers and definitions
+    target_include_directories(adventure INTERFACE ${LLVM_INCLUDE_DIRS})
+    target_compile_definitions(adventure INTERFACE ADVENTURE_ENABLE_LLVM_JIT ${LLVM_DEFINITIONS})
+
+    # Link against the necessary LLVM components
+    llvm_map_components_to_libnames(LLVM_LIBS
+        Core
+        ExecutionEngine
+        OrcJIT
+        Passes
+        Support
+        Target
+        TransformUtils
+        Analysis
+        ScalarOpts
+        native
+    )
+
+    target_link_libraries(adventure INTERFACE ${LLVM_LIBS})
 endif()
 
 # Optional install step

@@ -18,6 +18,10 @@
 #include "adventure/dynamic_array.hpp"
 #include "adventure/ops.hpp"
 
+#ifdef ADVENTURE_ENABLE_LLVM_JIT
+#include "adventure/jit/tape_jit.hpp"
+#endif
+
 namespace adventure {
 
 template <typename T>
@@ -42,6 +46,11 @@ class Tape {
   internal::DynamicArray<T> adj;
   internal::DynamicArray<OpCode> ops;
   internal::DynamicArray<index_type> operands;
+
+#ifdef ADVENTURE_ENABLE_LLVM_JIT
+  jit::TapeJITEngine<T> jit_engine;
+  bool jit_enabled = false;
+#endif
 
   static Tape &get_tape() {
     static ADVENTURE_THREAD_LOCAL Tape tape;
@@ -134,7 +143,30 @@ class Tape {
     adj.clear();
     ops.clear();
     operands.clear();
+#ifdef ADVENTURE_ENABLE_LLVM_JIT
+    jit_engine.reset();
+    jit_enabled = false;
+#endif
   }
+
+#ifdef ADVENTURE_ENABLE_LLVM_JIT
+  /// Compile the recorded tape using LLVM ORC JIT.
+  bool compile_jit(bool optimize = true) {
+    bool ok = jit_engine.compile(*this, optimize);
+    jit_enabled = ok;
+    return ok;
+  }
+
+  /// Check whether the tape has a compiled JIT kernel.
+  [[nodiscard]] bool is_jit_compiled() const noexcept {
+    return jit_engine.is_compiled();
+  }
+
+  /// Enable or disable JIT evaluation (if compiled).
+  void set_jit_enabled(bool enabled) noexcept {
+    jit_enabled = enabled && jit_engine.is_compiled();
+  }
+#endif
 
   void reserve(std::size_t nNodes, std::size_t nEdges) noexcept {
     primals.reserve();
@@ -189,6 +221,13 @@ class Tape {
 
   void primal() noexcept {
     if (primals.empty()) return;
+
+#ifdef ADVENTURE_ENABLE_LLVM_JIT
+    if (jit_enabled && jit_engine.is_compiled()) {
+      jit_engine.run_primal(primals.data());
+      return;
+    }
+#endif
 
     std::size_t arg_idx = 0;
 
@@ -314,6 +353,13 @@ class Tape {
 
   void backward() noexcept {
     if (primals.empty()) return;
+
+#ifdef ADVENTURE_ENABLE_LLVM_JIT
+    if (jit_enabled && jit_engine.is_compiled()) {
+      jit_engine.run_backward(primals.data(), adj.data());
+      return;
+    }
+#endif
 
     std::size_t arg_idx = operands.size();  // points one past the end
 
