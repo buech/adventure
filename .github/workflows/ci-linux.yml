@@ -68,19 +68,9 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-
-      - name: Install clang-format-22
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg lsb-release
-          CODENAME=$(lsb_release -sc)
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          echo "deb http://apt.llvm.org/${CODENAME}/ llvm-toolchain-${CODENAME}-22 main" | sudo tee /etc/apt/sources.list.d/llvm-22.list
-          sudo apt-get update
-          sudo apt-get install -y clang-format-22 git
 
       - name: Run formatter and fail on changes
         run: |
