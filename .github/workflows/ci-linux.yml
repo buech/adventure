@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-test:
     name: Build and Test (${{ matrix.compiler }}, ${{ matrix.build_type }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         compiler: [gcc, clang]
@@ -68,7 +68,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
