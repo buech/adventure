@@ -1,0 +1,35 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  adventure - A Minimal Reverse-Mode Automatic
+  Differentiation Library for C++
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Adam
+    family-names: Buechner
+    orcid: 'https://orcid.org/0009-0000-9719-2376'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22991133
+repository-code: 'https://github.com/buech/adventure'
+abstract: >-
+  adventure is a fast and lightweight C++20 library
+  providing reverse-mode automatic differentiation using
+  Jacobi tapes and expression templates.
+keywords:
+  - AD
+  - Algorithmic Differentiation
+  - Automatic Differentiation
+  - Differentiation
+  - Differentiable Programming
+  - Gradients
+  - Expression Templates
+  - Template Expressions
+license:
+  - Apache-2.0
+  - MIT
