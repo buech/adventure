@@ -52,6 +52,7 @@ configure_package_config_file(
 # GoogleTest
 if(ADVENTURE_BUILD_TESTS)
     include(FetchContent)
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
     set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
         googletest
