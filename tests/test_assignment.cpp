@@ -108,10 +108,7 @@ TYPED_TEST(AssignmentTest, SelfAssignmentLeavesNodeUnchanged) {
   tape.register_input(v);
 
   std::size_t old_idx = v.tape_index();
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wself-assign-overloaded"
   v = v;
-#pragma clang diagnostic pop
 
   EXPECT_EQ(v.tape_index(), old_idx)
       << "Self-assignment must not change the node";
