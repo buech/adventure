@@ -12,9 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Disable GNU extensions to the C++ standard
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable useful compiler warnings
-add_compile_options(-Wall -Wpedantic)
-
 # Generate compile_commands.json for tooling support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(GNUInstallDirs)
