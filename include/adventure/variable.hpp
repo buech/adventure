@@ -231,7 +231,7 @@ struct EdgeWriter {
 };
 
 template <class T>
-constexpr Tape<T> *get_tape_ptr(const ConstExpr<T> &e) noexcept {
+constexpr Tape<T> *get_tape_ptr(const ConstExpr<T> &) noexcept {
   return nullptr;
 }
 

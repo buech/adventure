@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 
 # Enable useful compiler warnings
-add_compile_options(-Wall -Wpedantic)
+add_compile_options(-Wall -Wpedantic -Wextra)
 
 add_executable(test_ad test_ad.cpp)
 target_link_libraries(test_ad PRIVATE adventure GTest::gtest_main)

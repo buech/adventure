@@ -45,11 +45,11 @@ struct SubOp {
 
 struct MulOp {
   template <class T>
-  static constexpr T coeff_left(const T &a, const T &b) {
+  static constexpr T coeff_left(const T &, const T &b) {
     return b;
   }
   template <class T>
-  static constexpr T coeff_right(const T &a, const T &b) {
+  static constexpr T coeff_right(const T &a, const T &) {
     return a;
   }
   template <class T>
@@ -60,7 +60,7 @@ struct MulOp {
 
 struct DivOp {
   template <class T>
-  static constexpr T coeff_left(const T &a, const T &b) {
+  static constexpr T coeff_left(const T &, const T &b) {
     return T(1) / b;
   }
   template <class T>
