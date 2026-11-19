@@ -77,7 +77,7 @@ if(ADVENTURE_BUILD_BENCHMARKS)
     FetchContent_Declare(
         benchmark
         DOWNLOAD_EXTRACT_TIMESTAMP ON
-        URL https://github.com/google/benchmark/archive/refs/tags/v1.9.5.zip
+        URL https://github.com/google/benchmark/archive/refs/tags/v1.10.0.zip
         )
     FetchContent_MakeAvailable(benchmark)
     add_subdirectory(benchmarks)
