@@ -20,8 +20,7 @@
 #endif
 
 #ifndef ADVENTURE_THREAD_LOCAL
-#define ADVENTURE_THREAD_LOCAL \
-  thread_local __attribute__((tls_model("initial-exec")))
+#define ADVENTURE_THREAD_LOCAL thread_local
 #endif
 
 #ifndef ADVENTURE_SHALLOW_COPY
