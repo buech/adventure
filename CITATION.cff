@@ -6,12 +6,13 @@ title: >-
   adventure - A Minimal Reverse-Mode Automatic
   Differentiation Library for C++
 message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+  If you use this software, please consider citing it using
+  either the metadata from this file or from the Zenodo
+  entry.
 type: software
 authors:
   - given-names: Adam
-    family-names: Buechner
+    family-names: Büchner
     orcid: 'https://orcid.org/0009-0000-9719-2376'
 identifiers:
   - type: doi
