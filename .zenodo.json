@@ -1,0 +1,21 @@
+{
+    "creators": [
+        {
+            "name": "Büchner, Adam",
+            "orcid": "0009-0000-9719-2376"
+        }
+    ],
+    "title": "adventure - A Minimal Reverse-Mode Automatic Differentiation Library for C++",
+    "access_right": "open",
+    "keywords": [
+        "AD",
+        "Algorithmic Differentiation",
+        "Automatic Differentiation",
+        "Differentiation",
+        "Differentiable Programming",
+        "Gradients",
+        "Expression Templates",
+        "Template Expressions"
+    ],
+    "upload_type": "software"
+}
