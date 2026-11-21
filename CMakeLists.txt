@@ -34,7 +34,7 @@ export(TARGETS adventure
 
 # Create package version file
 include(CMakePackageConfigHelpers)
-set(adventure_VERSION 0.2.0)
+set(adventure_VERSION 0.2.2)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/adventureConfigVersion.cmake"
     VERSION ${adventure_VERSION}
